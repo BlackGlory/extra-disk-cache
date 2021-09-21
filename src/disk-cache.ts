@@ -1,0 +1,267 @@
+import level, { ILevel } from 'level-rocksdb'
+import * as path from 'path'
+import Database, { Database as IDatabase } from 'better-sqlite3'
+import { readMigrations } from 'migrations-file'
+import { migrate } from '@blackglory/better-sqlite3-migrations'
+import { isntUndefined, isUndefined, isRecord } from '@blackglory/types'
+import pkgDir from 'pkg-dir'
+import { setSchedule } from 'extra-timers'
+import { DebounceMicrotask, each } from 'extra-promise'
+
+export interface IMetadata {
+  updatedAt: number
+  timeToLive: number
+  timeBeforeDeletion: number | null
+}
+
+// 出于性能考虑, DiskCache使用了多个数据库, 这导致缓存在一些情况下会失去一致性:
+// SQLite的记录存在的时候并不代表着对应的RocksDB里的记录存在, 反之亦然.
+// 在数据库的prepare和close阶段, 会删除各自数据库中缺失的项目.
+export class DiskCache {
+  protected data: ILevel<Buffer>
+  protected metadata: IDatabase
+  private cancelClearTimeout?: () => void
+  private debounceMicrotask = new DebounceMicrotask()
+
+  constructor(private dirname: string) {
+    const levelFilename = path.join(this.dirname, 'data.db')
+    const sqliteFilename = path.join(this.dirname, 'metadata.db')
+    this.data = level(levelFilename, { valueEncoding: 'binary' })
+    this.metadata = new Database(sqliteFilename)
+  }
+
+  async prepare(): Promise<void> {
+    await migrateDatabase(this.metadata)
+    await this.purgeDeleteableItems(Date.now())
+    await this.deleteOrphanedItems()
+    this.rescheduleClearTimeout()
+  }
+
+  async close(): Promise<void> {
+    this.cancelClearTimeout?.()
+    await this.deleteOrphanedItems()
+    this.metadata.exec(`
+      PRAGMA analysis_limit=400;
+      PRAGMA optimize;
+    `)
+    this.metadata.close()
+    await this.data.close()
+  }
+
+  /**
+   * 该操作可能造成数据库锁定.
+   */
+  async deleteOrphanedItems(): Promise<void> {
+    // 删除孤儿metadata记录
+    await new Promise<void>(resolve => {
+      const pendings: Array<Promise<void>> = []
+      this.data.createKeyStream()
+        .on('data', key => {
+          if (!this.hasMetadata(key)) {
+            pendings.push(this.deleteData(key))
+          }
+        })
+        .once('close', async () => {
+          await Promise.all(pendings)
+          resolve()
+        })
+    })
+
+    // 删除孤儿data记录
+    const rows: Iterable<{ key: string }> = this.metadata.prepare(`
+      SELECT key
+        FROM cache_metadata
+    `).iterate()
+    await each(rows, async ({ key }) => {
+      if (!await this.hasData(key)) {
+        this.deleteMetadata(key)
+      }
+    })
+  }
+
+  hasData(key: string): Promise<boolean> {
+    return new Promise(resolve => {
+      let exists = false
+      this.data.createKeyStream({ gte: key, lte: key, limit: 1 })
+        .once('data', () => exists = true)
+        .once('close', () => resolve(exists))
+    })
+  }
+
+  hasMetadata(key: string): boolean {
+    const row: { metadata_exists: 1 | 0 } = this.metadata.prepare(`
+      SELECT EXISTS(
+               SELECT *
+                 FROM cache_metadata
+                WHERE key = $key
+             ) AS metadata_exists
+    `).get({ key })
+
+    return row.metadata_exists === 1
+  }
+
+  async getData(key: string): Promise<Buffer | undefined> {
+    try {
+      return await this.data.get(key)
+    } catch (err: any) {
+      if (isRecord(err) && err.notFound) return undefined
+      throw err
+    }
+  }
+
+  getMetadata(key: string): IMetadata | undefined {
+    const row: {
+      updated_at: number
+      time_to_live: number
+      time_before_deletion: number | null
+    } | undefined = this.metadata.prepare(`
+      SELECT updated_at
+           , time_to_live
+           , time_before_deletion
+        FROM cache_metadata
+       WHERE key = $key
+    `).get({ key })
+    if (isUndefined(row)) return undefined
+
+    return {
+      updatedAt: row.updated_at
+    , timeToLive: row.time_to_live
+    , timeBeforeDeletion: row.time_before_deletion
+    }
+  }
+
+  async set(
+    key: string
+  , value: Buffer
+  , updatedAt: number
+  , timeToLive: number
+  , timeBeforeDeletion?: number
+  ): Promise<void> {
+    const pendingSetData = this.setData(key, value)
+    this.setMetadata(key, updatedAt, timeToLive, timeBeforeDeletion)
+    await pendingSetData
+  }
+
+  async setData(
+    key: string
+  , value: Buffer
+  ): Promise<void> {
+    await this.data.put(key, value)
+  }
+
+  setMetadata(
+    key: string
+  , updatedAt: number
+  , timeToLive: number
+  , timeBeforeDeletion?: number
+  ): void {
+    this.metadata.prepare(`
+      INSERT INTO cache_metadata (
+                    key
+                  , updated_at
+                  , time_to_live
+                  , time_before_deletion
+                  )
+      VALUES ($key, $updatedAt, $timeToLive, $timeBeforeDeletion)
+          ON CONFLICT(key)
+          DO UPDATE SET updated_at = $updatedAt
+                      , time_to_live = $timeToLive
+                      , time_before_deletion = $timeBeforeDeletion
+    `).run({ key, updatedAt, timeToLive, timeBeforeDeletion })
+
+    this.debounceMicrotask.queue(this.rescheduleClearTimeout)
+  }
+
+  async delete(key: string): Promise<void> {
+    const pendingDeleteData = this.deleteData(key)
+    this.deleteMetadata(key)
+    await pendingDeleteData
+  }
+
+  async deleteData(key: string): Promise<void> {
+    await this.data.del(key)
+  }
+
+  deleteMetadata(key: string): void {
+    this.metadata.prepare(`
+      DELETE FROM cache_metadata
+       WHERE key = $key
+    `).run({ key })
+
+    this.debounceMicrotask.queue(this.rescheduleClearTimeout)
+  }
+
+  async clear(): Promise<void> {
+    const pendingClearData = this.clearData()
+    this.clearMetadata()
+    await pendingClearData
+  }
+
+  async clearData(): Promise<void> {
+    await this.data.clear()
+  }
+
+  clearMetadata(): void {
+    this.metadata.prepare(`
+      DELETE FROM cache_metadata
+    `).run()
+
+    this.cancelClearTimeout?.()
+  }
+
+  private rescheduleClearTimeout = () => {
+    this.cancelClearTimeout?.()
+
+    const row: { timestamp: number } | undefined = this.metadata.prepare(`
+      SELECT updated_at + time_to_live + time_before_deletion AS timestamp
+        FROM cache_metadata
+       WHERE time_before_deletion IS NOT NULL
+       ORDER BY updated_at + time_to_live + time_before_deletion ASC
+       LIMIT 1
+    `).get()
+
+    if (isntUndefined(row)) {
+      const cancel = setSchedule(row.timestamp, () => {
+        this.purgeDeleteableItems(Date.now())
+        this.debounceMicrotask.queue(this.rescheduleClearTimeout)
+      })
+
+      this.cancelClearTimeout = () => {
+        cancel()
+        delete this.cancelClearTimeout
+      }
+    }
+  }
+
+  /**
+   * @param timestamp 作为过期临界线的时间戳
+   */
+  async purgeDeleteableItems(timestamp: number): Promise<void> {
+    const keys = this.metadata.transaction(() => {
+      const rows: Array<{ key: string }> = this.metadata.prepare(`
+        SELECT key
+          FROM cache_metadata
+         WHERE time_before_deletion IS NOT NULL
+           AND updated_at + time_to_live + time_before_deletion < $timestamp
+      `).all({ timestamp })
+
+      this.metadata.prepare(`
+        DELETE FROM cache_metadata
+         WHERE time_before_deletion IS NOT NULL
+           AND updated_at + time_to_live + time_before_deletion < $timestamp
+      `).run({ timestamp })
+
+      return rows.map(x => x.key)
+    })()
+
+    const ops = keys.map(key => ({ type: 'del', key }) as const)
+    await this.data.batch(ops)
+  }
+}
+
+async function migrateDatabase(db: IDatabase) {
+  const pkgRoot = (await pkgDir(__dirname))!
+  const migrationsPath = path.join(pkgRoot, 'migrations')
+  const migrations = await readMigrations(migrationsPath)
+  migrate(db, migrations)
+}
