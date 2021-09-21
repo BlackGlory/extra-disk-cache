@@ -15,12 +15,14 @@ import '@blackglory/jest-matchers'
 beforeEach(initializeDiskCache)
 afterEach(clearDiskCache)
 
+const TIME_ERROR = 1
+
 describe('DiskCache', () => {
   describe('Behavior', () => {
     it('will delete items automatically', async () => {
       await diskCache.set('key', Buffer.from('value'), Date.now(), 100, 100)
 
-      await delay(201)
+      await delay(201 + TIME_ERROR)
 
       expect(await diskCache.hasData('key')).toBeFalsy()
       expect(diskCache.hasMetadata('key')).toBeFalsy()
