@@ -20,8 +20,12 @@
     "prepublishOnly": "run-s clean build",
     "clean": "rimraf lib",
     "build": "run-p build:*",
-    "build:es2015": "tsc --project tsconfig.build.json --target es2015 --outDir lib/es2015",
-    "build:es2018": "tsc --project tsconfig.build.json --target es2018 --outDir lib/es2018",
+    "build:es2015": "run-s build:es2015:*",
+    "build:es2015:compile": "tsc --project tsconfig.build.json --target es2015 --outDir lib/es2015",
+    "build:es2015:copy-d-ts": "cp src/*.d.ts lib/es2015",
+    "build:es2018": "run-s build:es2018:*",
+    "build:es2018:compile": "tsc --project tsconfig.build.json --target es2018 --outDir lib/es2018",
+    "build:es2018:copy-d-ts": "cp src/*.d.ts lib/es2018",
     "release": "standard-version"
   },
   "husky": {
