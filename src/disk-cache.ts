@@ -164,11 +164,11 @@ export class DiskCache extends AsyncConstructor {
                   , time_to_live
                   , time_before_deletion
                   )
-      VALUES ($key, $updatedAt, $timeToLive, $timeBeforeDeletion)
-          ON CONFLICT(key)
-          DO UPDATE SET updated_at = $updatedAt
-                      , time_to_live = $timeToLive
-                      , time_before_deletion = $timeBeforeDeletion
+           VALUES ($key, $updatedAt, $timeToLive, $timeBeforeDeletion)
+               ON CONFLICT(key)
+               DO UPDATE SET updated_at = $updatedAt
+                           , time_to_live = $timeToLive
+                           , time_before_deletion = $timeBeforeDeletion
     `).run({ key, updatedAt, timeToLive, timeBeforeDeletion })
 
     this.debounceMicrotask.queue(this.rescheduleClearTimeout)
