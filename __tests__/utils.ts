@@ -16,8 +16,7 @@ class DiskCacheTest extends DiskCache {
 }
 
 export async function initializeDiskCache() {
-  diskCache = new DiskCacheTest(tmpDir)
-  await diskCache.prepare()
+  diskCache = await new DiskCacheTest(tmpDir)
 }
 
 export async function clearDiskCache() {
