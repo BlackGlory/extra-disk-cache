@@ -59,7 +59,7 @@ class DiskCache extends AsyncConstructor {
 
   delete(key: string): Promise<void>
   deleteData(key: string): Promise<void>
-  deleteMetadata(key: string): void>
+  deleteMetadata(key: string): void
 
   clear(): Promise<void>
   clearData(): Promise<void>
