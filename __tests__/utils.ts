@@ -3,24 +3,10 @@ import { createTempDirSync, emptyDir } from 'extra-filesystem'
 import { isRecord } from '@blackglory/types'
 
 const tmpDir = createTempDirSync()
-export let diskCache: DiskCacheTest
-
-class DiskCacheTest extends DiskCache {
-  static override create<T extends DiskCache>(dirname: string): Promise<T> {
-    return super.create(dirname)
-  }
-
-  getLevel() {
-    return this.data
-  }
-
-  getSQLite() {
-    return this.metadata
-  }
-}
+export let diskCache: DiskCache
 
 export async function initializeDiskCache() {
-  diskCache = await DiskCacheTest.create(tmpDir)
+  diskCache = await DiskCache.create(tmpDir)
 }
 
 export async function clearDiskCache() {
@@ -36,11 +22,11 @@ interface IRawMetadata {
 }
 
 export async function setRawData(key: string, data: Buffer): Promise<void> {
-  await diskCache.getLevel().put(key, Buffer.from(data))
+  await diskCache._data.put(key, Buffer.from(data))
 }
 
 export function setRawMetadata(raw: IRawMetadata): void {
-  diskCache.getSQLite().prepare(`
+  diskCache._metadata.prepare(`
     INSERT INTO cache_metadata(
                   key
                 , updated_at
@@ -52,11 +38,11 @@ export function setRawMetadata(raw: IRawMetadata): void {
 }
 
 export async function getRawData(key: string): Promise<Buffer> {
-  return await diskCache.getLevel().get(key)
+  return await diskCache._data.get(key)
 }
 
 export function getRawMetadata(key: string): IRawMetadata {
-  return diskCache.getSQLite().prepare(`
+  return diskCache._metadata.prepare(`
     SELECT *
       FROM cache_metadata
      WHERE key = $key
@@ -65,7 +51,7 @@ export function getRawMetadata(key: string): IRawMetadata {
 
 export async function hasRawData(key: string): Promise<boolean> {
   try {
-    await diskCache.getLevel().get(key)
+    await diskCache._data.get(key)
     return true
   } catch (err) {
     if (isRecord(err) && err.notFound) return false
@@ -74,7 +60,7 @@ export async function hasRawData(key: string): Promise<boolean> {
 }
 
 export function hasRawMetadata(key: string): boolean {
-  const result: { metadata_exists: 1 | 0 } = diskCache.getSQLite().prepare(`
+  const result: { metadata_exists: 1 | 0 } = diskCache._metadata.prepare(`
     SELECT EXISTS(
              SELECT *
                FROM cache_metadata

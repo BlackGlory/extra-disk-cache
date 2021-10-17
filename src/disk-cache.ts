@@ -23,11 +23,11 @@ export class DiskCache {
   private debounceMicrotask = new DebounceMicrotask()
 
   protected constructor(
-    protected data: ILevel<Buffer>
-  , protected metadata: IDatabase
+    public _data: ILevel<Buffer>
+  , public _metadata: IDatabase
   ) {}
 
-  static async create<T extends DiskCache>(dirname: string): Promise<T> {
+  static async create(dirname: string): Promise<DiskCache> {
     await ensureDir(dirname)
     const levelFilename = path.join(dirname, 'data.db')
     const sqliteFilename = path.join(dirname, 'metadata.db')
@@ -35,23 +35,23 @@ export class DiskCache {
     const metadata = new Database(sqliteFilename)
     await migrateDatabase(metadata)
 
-    const diskCache = new this(data, metadata)
+    const diskCache = new DiskCache(data, metadata)
     await diskCache.purgeDeleteableItems(Date.now())
     await diskCache.deleteOrphanedItems()
     diskCache.rescheduleClearTimeout()
 
-    return diskCache as T
+    return diskCache
   }
 
   async close(): Promise<void> {
     this.cancelClearTimeout?.()
     await this.deleteOrphanedItems()
-    this.metadata.exec(`
+    this._metadata.exec(`
       PRAGMA analysis_limit=400;
       PRAGMA optimize;
     `)
-    this.metadata.close()
-    await this.data.close()
+    this._metadata.close()
+    await this._data.close()
   }
 
   /**
@@ -61,7 +61,7 @@ export class DiskCache {
     // 删除孤儿metadata记录
     await new Promise<void>(resolve => {
       const pendings: Array<Promise<void>> = []
-      this.data.createKeyStream()
+      this._data.createKeyStream()
         .on('data', key => {
           if (!this.hasMetadata(key)) {
             pendings.push(this.deleteData(key))
@@ -74,7 +74,7 @@ export class DiskCache {
     })
 
     // 删除孤儿data记录
-    const rows: Iterable<{ key: string }> = this.metadata.prepare(`
+    const rows: Iterable<{ key: string }> = this._metadata.prepare(`
       SELECT key
         FROM cache_metadata
     `).iterate()
@@ -88,14 +88,14 @@ export class DiskCache {
   hasData(key: string): Promise<boolean> {
     return new Promise(resolve => {
       let exists = false
-      this.data.createKeyStream({ gte: key, lte: key, limit: 1 })
+      this._data.createKeyStream({ gte: key, lte: key, limit: 1 })
         .once('data', () => exists = true)
         .once('close', () => resolve(exists))
     })
   }
 
   hasMetadata(key: string): boolean {
-    const row: { metadata_exists: 1 | 0 } = this.metadata.prepare(`
+    const row: { metadata_exists: 1 | 0 } = this._metadata.prepare(`
       SELECT EXISTS(
                SELECT *
                  FROM cache_metadata
@@ -108,7 +108,7 @@ export class DiskCache {
 
   async getData(key: string): Promise<Buffer | undefined> {
     try {
-      return await this.data.get(key)
+      return await this._data.get(key)
     } catch (err: any) {
       if (isRecord(err) && err.notFound) return undefined
       throw err
@@ -120,7 +120,7 @@ export class DiskCache {
       updated_at: number
       time_to_live: number
       time_before_deletion: number | null
-    } | undefined = this.metadata.prepare(`
+    } | undefined = this._metadata.prepare(`
       SELECT updated_at
            , time_to_live
            , time_before_deletion
@@ -152,7 +152,7 @@ export class DiskCache {
     key: string
   , value: Buffer
   ): Promise<void> {
-    await this.data.put(key, value)
+    await this._data.put(key, value)
   }
 
   setMetadata(
@@ -161,7 +161,7 @@ export class DiskCache {
   , timeToLive: number
   , timeBeforeDeletion?: number
   ): void {
-    this.metadata.prepare(`
+    this._metadata.prepare(`
       INSERT INTO cache_metadata (
                     key
                   , updated_at
@@ -185,11 +185,11 @@ export class DiskCache {
   }
 
   async deleteData(key: string): Promise<void> {
-    await this.data.del(key)
+    await this._data.del(key)
   }
 
   deleteMetadata(key: string): void {
-    this.metadata.prepare(`
+    this._metadata.prepare(`
       DELETE FROM cache_metadata
        WHERE key = $key
     `).run({ key })
@@ -204,11 +204,11 @@ export class DiskCache {
   }
 
   async clearData(): Promise<void> {
-    await this.data.clear()
+    await this._data.clear()
   }
 
   clearMetadata(): void {
-    this.metadata.prepare(`
+    this._metadata.prepare(`
       DELETE FROM cache_metadata
     `).run()
 
@@ -218,7 +218,7 @@ export class DiskCache {
   private rescheduleClearTimeout = () => {
     this.cancelClearTimeout?.()
 
-    const row: { timestamp: number } | undefined = this.metadata.prepare(`
+    const row: { timestamp: number } | undefined = this._metadata.prepare(`
       SELECT updated_at + time_to_live + time_before_deletion AS timestamp
         FROM cache_metadata
        WHERE time_before_deletion IS NOT NULL
@@ -243,15 +243,15 @@ export class DiskCache {
    * @param timestamp 作为过期临界线的时间戳
    */
   async purgeDeleteableItems(timestamp: number): Promise<void> {
-    const keys = this.metadata.transaction(() => {
-      const rows: Array<{ key: string }> = this.metadata.prepare(`
+    const keys = this._metadata.transaction(() => {
+      const rows: Array<{ key: string }> = this._metadata.prepare(`
         SELECT key
           FROM cache_metadata
          WHERE time_before_deletion IS NOT NULL
            AND updated_at + time_to_live + time_before_deletion < $timestamp
       `).all({ timestamp })
 
-      this.metadata.prepare(`
+      this._metadata.prepare(`
         DELETE FROM cache_metadata
          WHERE time_before_deletion IS NOT NULL
            AND updated_at + time_to_live + time_before_deletion < $timestamp
@@ -261,11 +261,11 @@ export class DiskCache {
     })()
 
     const ops = keys.map(key => ({ type: 'del', key }) as const)
-    await this.data.batch(ops)
+    await this._data.batch(ops)
   }
 }
 
-async function migrateDatabase(db: IDatabase) {
+export async function migrateDatabase(db: IDatabase) {
   const pkgRoot = (await pkgDir(__dirname))!
   const migrationsPath = path.join(pkgRoot, 'migrations')
   const migrations = await readMigrations(migrationsPath)

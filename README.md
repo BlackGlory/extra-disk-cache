@@ -33,7 +33,7 @@ interface IMetadata {
 
 ```ts
 class DiskCache {
-  static create<T extends DiskCache>(dirname: string): Promise<T>
+  static create(dirname: string): Promise<DiskCache>
 
   close(): Promise<void>
 
