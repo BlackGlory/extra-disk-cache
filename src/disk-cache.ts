@@ -8,7 +8,6 @@ import pkgDir from 'pkg-dir'
 import { setSchedule } from 'extra-timers'
 import { DebounceMicrotask, each } from 'extra-promise'
 import { ensureDir } from 'extra-filesystem'
-import { AsyncConstructor } from 'async-constructor'
 
 export interface IMetadata {
   updatedAt: number
@@ -19,24 +18,29 @@ export interface IMetadata {
 // 出于性能考虑, DiskCache使用了多个数据库, 这导致缓存在一些情况下会失去一致性:
 // SQLite的记录存在的时候并不代表着对应的RocksDB里的记录存在, 反之亦然.
 // 在数据库的prepare和close阶段, 会删除各自数据库中缺失的项目.
-export class DiskCache extends AsyncConstructor {
-  protected data!: ILevel<Buffer>
-  protected metadata!: IDatabase
+export class DiskCache {
   private cancelClearTimeout?: () => void
   private debounceMicrotask = new DebounceMicrotask()
 
-  constructor(dirname: string) {
-    super(async () => {
-      await ensureDir(dirname)
-      const levelFilename = path.join(dirname, 'data.db')
-      const sqliteFilename = path.join(dirname, 'metadata.db')
-      this.data = level(levelFilename, { valueEncoding: 'binary' })
-      this.metadata = new Database(sqliteFilename)
-      await migrateDatabase(this.metadata)
-      await this.purgeDeleteableItems(Date.now())
-      await this.deleteOrphanedItems()
-      this.rescheduleClearTimeout()
-    })
+  protected constructor(
+    protected data: ILevel<Buffer>
+  , protected metadata: IDatabase
+  ) {}
+
+  static async create<T extends DiskCache>(dirname: string): Promise<T> {
+    await ensureDir(dirname)
+    const levelFilename = path.join(dirname, 'data.db')
+    const sqliteFilename = path.join(dirname, 'metadata.db')
+    const data = level<Buffer>(levelFilename, { valueEncoding: 'binary' })
+    const metadata = new Database(sqliteFilename)
+    await migrateDatabase(metadata)
+
+    const diskCache = new this(data, metadata)
+    await diskCache.purgeDeleteableItems(Date.now())
+    await diskCache.deleteOrphanedItems()
+    diskCache.rescheduleClearTimeout()
+
+    return diskCache as T
   }
 
   async close(): Promise<void> {

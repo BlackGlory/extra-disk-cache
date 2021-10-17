@@ -14,7 +14,7 @@ yarn add extra-disk-cache
 ```ts
 import { DiskCache } from 'extra-disk-cache'
 
-const cache = await new DiskCache('/tmp/cache')
+const cache = await DiskCache.create('/tmp/cache')
 await cache.set('key', Buffer.from('value'), Date.now(), 3600)
 const data = await cache.getData('key')
 ```
@@ -32,8 +32,9 @@ interface IMetadata {
 #### DiskCache
 
 ```ts
-class DiskCache extends AsyncConstructor {
-  constructor(dirname: string)
+class DiskCache {
+  static create<T extends DiskCache>(dirname: string): Promise<T>
+
   close(): Promise<void>
 
   hasData(key: string): Promise<boolean>

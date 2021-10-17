@@ -6,6 +6,10 @@ const tmpDir = createTempDirSync()
 export let diskCache: DiskCacheTest
 
 class DiskCacheTest extends DiskCache {
+  static override create<T extends DiskCache>(dirname: string): Promise<T> {
+    return super.create(dirname)
+  }
+
   getLevel() {
     return this.data
   }
@@ -16,7 +20,7 @@ class DiskCacheTest extends DiskCache {
 }
 
 export async function initializeDiskCache() {
-  diskCache = await new DiskCacheTest(tmpDir)
+  diskCache = await DiskCacheTest.create(tmpDir)
 }
 
 export async function clearDiskCache() {
