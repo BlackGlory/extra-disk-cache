@@ -141,7 +141,7 @@ export class DiskCache {
   , value: Buffer
   , updatedAt: number
   , timeToLive: number
-  , timeBeforeDeletion?: number
+  , timeBeforeDeletion: number | null
   ): Promise<void> {
     const pendingSetData = this.setData(key, value)
     this.setMetadata(key, updatedAt, timeToLive, timeBeforeDeletion)
@@ -159,7 +159,7 @@ export class DiskCache {
     key: string
   , updatedAt: number
   , timeToLive: number
-  , timeBeforeDeletion?: number
+  , timeBeforeDeletion: number | null
   ): void {
     this._metadata.prepare(`
       INSERT INTO cache_metadata (

@@ -15,7 +15,7 @@ yarn add extra-disk-cache
 import { DiskCache } from 'extra-disk-cache'
 
 const cache = await DiskCache.create('/tmp/cache')
-await cache.set('key', Buffer.from('value'), Date.now(), 3600)
+await cache.set('key', Buffer.from('value'), Date.now(), 3600, 0)
 const data = await cache.getData('key')
 ```
 
@@ -25,6 +25,12 @@ const data = await cache.getData('key')
 interface IMetadata {
   updatedAt: number
   timeToLive: number
+
+  /**
+   * `timeBeforeDeletion > 0`: items will survive `timeBeforeDeletion` milliseconds after expiration.
+   * `timeBeforeDeletion = 0`: items will be deleted as soon as possible after expiration.
+   * `timeBeforeDeletion = null`: items will not be deleted after expiration.
+   */
   timeBeforeDeletion: number | null
 }
 ```
@@ -47,15 +53,15 @@ class DiskCache {
     key: string
   , value: Buffer
   , updatedAt: number
-  , timeToLive: number
-  , timeBeforeDeletion?: number
+  , timeToLive: number /* ms */
+  , timeBeforeDeletion: number | null /* ms */
   ): Promise<void>
   setData(key: string, value: Buffer): Promise<void>
   setMetadata(
     key: string
   , updatedAt: number
-  , timeToLive: number
-  , timeBeforeDeletion?: number
+  , timeToLive: number /* ms */
+  , timeBeforeDeletion: number | null /* ms */
   ): void
 
   delete(key: string): Promise<void>

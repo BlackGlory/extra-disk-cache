@@ -140,7 +140,7 @@ describe('DiskCache', () => {
       , value: Buffer
       , updatedAt: number
       , timeToLive: number
-      , timeBeforeDeletion?: number
+      , timeBeforeDeletion: number | null
       ): Promise<void>
     `, () => {
       test('data exists', async () => {
@@ -154,7 +154,7 @@ describe('DiskCache', () => {
         })
         const newData = Buffer.from('new value')
 
-        const result = diskCache.set('key', newData, 1800, 3600, undefined)
+        const result = diskCache.set('key', newData, 1800, 3600, null)
         const proResult = await result
 
         expect(result).toBePromise()
@@ -170,7 +170,7 @@ describe('DiskCache', () => {
 
       test('data does not exist', async () => {
         const data = Buffer.from('value')
-        const result = diskCache.set('key', data, 1800, 3600, undefined)
+        const result = diskCache.set('key', data, 1800, 3600, null)
         const proResult = await result
 
         expect(result).toBePromise()
@@ -216,7 +216,7 @@ describe('DiskCache', () => {
         key: string
       , updatedAt: number
       , timeToLive: number
-      , timeBeforeDeletion?: number
+      , timeBeforeDeletion: number | null
       ): void
     `, () => {
       test('metadata exists', () => {
@@ -227,7 +227,7 @@ describe('DiskCache', () => {
         , time_before_deletion: 3600
         })
 
-        const result = diskCache.setMetadata('key', 1800, 3600, undefined)
+        const result = diskCache.setMetadata('key', 1800, 3600, null)
 
         expect(result).toBeUndefined()
         expect(getRawMetadata('key')).toEqual({
@@ -239,7 +239,7 @@ describe('DiskCache', () => {
       })
 
       test('metadata does not exist', () => {
-        const result = diskCache.setMetadata('key', 1800, 3600, undefined)
+        const result = diskCache.setMetadata('key', 1800, 3600, null)
 
         expect(result).toBeUndefined()
         expect(getRawMetadata('key')).toEqual({
