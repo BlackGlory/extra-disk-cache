@@ -1,6 +1,6 @@
 import { DiskCache } from '@src/disk-cache'
 import { createTempDirSync, emptyDir } from 'extra-filesystem'
-import { isRecord } from '@blackglory/types'
+import { isObject } from '@blackglory/types'
 
 const tmpDir = createTempDirSync()
 export let diskCache: DiskCache
@@ -54,7 +54,7 @@ export async function hasRawData(key: string): Promise<boolean> {
     await diskCache._data.get(key)
     return true
   } catch (err) {
-    if (isRecord(err) && err.notFound) return false
+    if (isObject(err) && err.notFound) return false
     throw err
   }
 }

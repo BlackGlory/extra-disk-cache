@@ -3,7 +3,7 @@ import * as path from 'path'
 import Database, { Database as IDatabase } from 'better-sqlite3'
 import { readMigrations } from 'migrations-file'
 import { migrate } from '@blackglory/better-sqlite3-migrations'
-import { isntUndefined, isUndefined, isRecord } from '@blackglory/types'
+import { isntUndefined, isUndefined, isObject } from '@blackglory/types'
 import pkgDir from 'pkg-dir'
 import { setSchedule } from 'extra-timers'
 import { DebounceMicrotask, each } from 'extra-promise'
@@ -110,7 +110,7 @@ export class DiskCache {
     try {
       return await this._data.get(key)
     } catch (err: any) {
-      if (isRecord(err) && err.notFound) return undefined
+      if (isObject(err) && err.notFound) return undefined
       throw err
     }
   }
