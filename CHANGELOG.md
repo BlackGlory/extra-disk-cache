@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.4.0](https://github.com/BlackGlory/extra-disk-cache/compare/v0.3.3...v0.4.0) (2021-12-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* - The minimum version is Node.js v16
+
+* upgrade dependencies ([771d7b5](https://github.com/BlackGlory/extra-disk-cache/commit/771d7b5909580263982f4facc2fe7b64751c38b0))
+
 ### [0.3.3](https://github.com/BlackGlory/extra-disk-cache/compare/v0.3.2...v0.3.3) (2021-12-16)
 
 ### [0.3.2](https://github.com/BlackGlory/extra-disk-cache/compare/v0.3.1...v0.3.2) (2021-11-18)
