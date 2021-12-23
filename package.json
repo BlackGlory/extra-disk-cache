@@ -68,6 +68,6 @@
     "extra-timers": "^0.2.4",
     "level-rocksdb": "^5.0.0",
     "migrations-file": "^0.2.1",
-    "pkg-dir": "5"
+    "pkg-dir": "6"
   }
 }
