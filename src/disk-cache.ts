@@ -4,10 +4,9 @@ import Database, { Database as IDatabase } from 'better-sqlite3'
 import { readMigrations } from 'migrations-file'
 import { migrate } from '@blackglory/better-sqlite3-migrations'
 import { isntUndefined, isUndefined, isObject } from '@blackglory/types'
-import pkgDir from 'pkg-dir'
 import { setSchedule } from 'extra-timers'
 import { DebounceMicrotask, each } from 'extra-promise'
-import { ensureDir } from 'extra-filesystem'
+import { ensureDir, findUpPackageFilename } from 'extra-filesystem'
 
 export interface IMetadata {
   updatedAt: number
@@ -265,8 +264,8 @@ export class DiskCache {
   }
 }
 
-export async function migrateDatabase(db: IDatabase) {
-  const pkgRoot = (await pkgDir(__dirname))!
+export async function migrateDatabase(db: IDatabase): Promise<void> {
+  const pkgRoot = path.join((await findUpPackageFilename(__dirname))!, '..')
   const migrationsPath = path.join(pkgRoot, 'migrations')
   const migrations = await readMigrations(migrationsPath)
   migrate(db, migrations)
