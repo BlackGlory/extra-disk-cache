@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.5.0](https://github.com/BlackGlory/extra-disk-cache/compare/v0.4.3...v0.5.0) (2022-04-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* rewrite database schema
+
+### Features
+
+* rewrite metadata ([c410926](https://github.com/BlackGlory/extra-disk-cache/commit/c410926d532f08dd780bff5e51a9b71df51c129b))
+
 ### [0.4.3](https://github.com/BlackGlory/extra-disk-cache/compare/v0.4.2...v0.4.3) (2022-03-20)
 
 ### [0.4.2](https://github.com/BlackGlory/extra-disk-cache/compare/v0.4.1...v0.4.2) (2021-12-30)
