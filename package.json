@@ -61,6 +61,7 @@
   },
   "dependencies": {
     "@blackglory/better-sqlite3-migrations": "^0.1.9",
+    "@blackglory/prelude": "^0.1.1",
     "@blackglory/types": "^1.0.1",
     "better-sqlite3": "^7.5.0",
     "extra-filesystem": "^0.4.2",

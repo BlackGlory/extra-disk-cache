@@ -3,15 +3,27 @@ import * as path from 'path'
 import Database, { Database as IDatabase } from 'better-sqlite3'
 import { readMigrations } from 'migrations-file'
 import { migrate } from '@blackglory/better-sqlite3-migrations'
-import { isntUndefined, isUndefined, isObject } from '@blackglory/types'
+import { assert, isntUndefined, isUndefined, isObject, isPositiveInfinity, isNull } from '@blackglory/prelude'
 import { setSchedule } from 'extra-timers'
 import { DebounceMicrotask, each } from 'extra-promise'
 import { ensureDir, findUpPackageFilename } from 'extra-filesystem'
 
 export interface IMetadata {
   updatedAt: number
+
+  /**
+   * `timeToLive > 0`: items will be expired after `timeToLive` milliseconds.
+   * `timeToLive = 0`: items will be expired immediately.
+   * `timeToLive = Infinity`: items will not expire.
+   */
   timeToLive: number
-  timeBeforeDeletion: number | null
+
+  /**
+   * `timeBeforeDeletion > 0`: items will survive `timeBeforeDeletion` milliseconds after expiration.
+   * `timeBeforeDeletion = 0`: items will be deleted as soon as possible after expiration.
+   * `timeBeforeDeletion = Infinity`: items will not be deleted after expiration.
+   */
+  timeBeforeDeletion: number
 }
 
 // 出于性能考虑, DiskCache使用了多个数据库, 这导致缓存在一些情况下会失去一致性:
@@ -117,7 +129,7 @@ export class DiskCache {
   getMetadata(key: string): IMetadata | undefined {
     const row: {
       updated_at: number
-      time_to_live: number
+      time_to_live: number | null
       time_before_deletion: number | null
     } | undefined = this._metadata.prepare(`
       SELECT updated_at
@@ -130,8 +142,8 @@ export class DiskCache {
 
     return {
       updatedAt: row.updated_at
-    , timeToLive: row.time_to_live
-    , timeBeforeDeletion: row.time_before_deletion
+    , timeToLive: isNull(row.time_to_live) ? Infinity : row.time_to_live
+    , timeBeforeDeletion: isNull(row.time_before_deletion) ? Infinity : row.time_before_deletion
     }
   }
 
@@ -140,8 +152,11 @@ export class DiskCache {
   , value: Buffer
   , updatedAt: number
   , timeToLive: number
-  , timeBeforeDeletion: number | null
+  , timeBeforeDeletion: number
   ): Promise<void> {
+    assert(timeToLive >= 0, 'timeToLive should be greater than or equal to 0')
+    assert(timeBeforeDeletion >= 0, 'timeBeforeDeletion should be greater than or equal to 0')
+
     const pendingSetData = this.setData(key, value)
     this.setMetadata(key, updatedAt, timeToLive, timeBeforeDeletion)
     await pendingSetData
@@ -158,8 +173,11 @@ export class DiskCache {
     key: string
   , updatedAt: number
   , timeToLive: number
-  , timeBeforeDeletion: number | null
+  , timeBeforeDeletion: number
   ): void {
+    assert(timeToLive >= 0, 'timeToLive should be greater than or equal to 0')
+    assert(timeBeforeDeletion >= 0, 'timeBeforeDeletion should be greater than or equal to 0')
+
     this._metadata.prepare(`
       INSERT INTO cache_metadata (
                     key
@@ -172,7 +190,12 @@ export class DiskCache {
                DO UPDATE SET updated_at = $updatedAt
                            , time_to_live = $timeToLive
                            , time_before_deletion = $timeBeforeDeletion
-    `).run({ key, updatedAt, timeToLive, timeBeforeDeletion })
+    `).run({
+      key
+    , updatedAt
+    , timeToLive: isPositiveInfinity(timeToLive) ? null : timeToLive
+    , timeBeforeDeletion: isPositiveInfinity(timeBeforeDeletion) ? null : timeBeforeDeletion
+    })
 
     this.debounceMicrotask.queue(this.rescheduleClearTimeout)
   }
@@ -220,7 +243,8 @@ export class DiskCache {
     const row: { timestamp: number } | undefined = this._metadata.prepare(`
       SELECT updated_at + time_to_live + time_before_deletion AS timestamp
         FROM cache_metadata
-       WHERE time_before_deletion IS NOT NULL
+       WHERE time_to_live IS NOT NULL
+         AND time_before_deletion IS NOT NULL
        ORDER BY updated_at + time_to_live + time_before_deletion ASC
        LIMIT 1
     `).get()

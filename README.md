@@ -2,7 +2,6 @@
 High-performance persistent cache, using SQLite3 and RocksDB under the hood.
 
 ## Install
-
 ```sh
 npm install --save extra-disk-cache
 # or
@@ -10,7 +9,6 @@ yarn add extra-disk-cache
 ```
 
 ### Usage
-
 ```ts
 import { DiskCache } from 'extra-disk-cache'
 
@@ -20,23 +18,27 @@ const data = await cache.getData('key')
 ```
 
 ### API
-
 ```ts
 interface IMetadata {
   updatedAt: number
+
+  /**
+   * `timeToLive > 0`: items will expire after `timeToLive` milliseconds.
+   * `timeToLive = 0`: items will expire immediately.
+   * `timeToLive = Infinity`: items will not expire.
+   */
   timeToLive: number
 
   /**
    * `timeBeforeDeletion > 0`: items will survive `timeBeforeDeletion` milliseconds after expiration.
    * `timeBeforeDeletion = 0`: items will be deleted as soon as possible after expiration.
-   * `timeBeforeDeletion = null`: items will not be deleted after expiration.
+   * `timeBeforeDeletion = Infinity`: items will not be deleted after expiration.
    */
-  timeBeforeDeletion: number | null
+  timeBeforeDeletion: number
 }
 ```
 
 #### DiskCache
-
 ```ts
 class DiskCache {
   static create(dirname: string): Promise<DiskCache>
@@ -54,14 +56,14 @@ class DiskCache {
   , value: Buffer
   , updatedAt: number
   , timeToLive: number /* ms */
-  , timeBeforeDeletion: number | null /* ms */
+  , timeBeforeDeletion: number /* ms */
   ): Promise<void>
   setData(key: string, value: Buffer): Promise<void>
   setMetadata(
     key: string
   , updatedAt: number
   , timeToLive: number /* ms */
-  , timeBeforeDeletion: number | null /* ms */
+  , timeBeforeDeletion: number /* ms */
   ): void
 
   delete(key: string): Promise<void>

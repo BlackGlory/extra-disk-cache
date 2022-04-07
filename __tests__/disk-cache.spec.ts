@@ -61,7 +61,7 @@ describe('DiskCache', () => {
             key: 'key'
           , updated_at: 0
           , time_to_live: 0
-          , time_before_deletion: undefined
+          , time_before_deletion: null
           })
 
           const result = diskCache.hasMetadata('key')
@@ -112,7 +112,7 @@ describe('DiskCache', () => {
             key: 'key'
           , updated_at: 0
           , time_to_live: 0
-          , time_before_deletion: undefined
+          , time_before_deletion: null
           })
 
           const result = diskCache.getMetadata('key')
@@ -120,7 +120,7 @@ describe('DiskCache', () => {
           expect(result).toStrictEqual({
             updatedAt: 0
           , timeToLive: 0
-          , timeBeforeDeletion: null
+          , timeBeforeDeletion: Infinity
           })
         })
       })
@@ -154,7 +154,7 @@ describe('DiskCache', () => {
         })
         const newData = Buffer.from('new value')
 
-        const result = diskCache.set('key', newData, 1800, 3600, null)
+        const result = diskCache.set('key', newData, 1800, 3600, Infinity)
         const proResult = await result
 
         expect(result).toBePromise()
@@ -170,7 +170,7 @@ describe('DiskCache', () => {
 
       test('data does not exist', async () => {
         const data = Buffer.from('value')
-        const result = diskCache.set('key', data, 1800, 3600, null)
+        const result = diskCache.set('key', data, 1800, 3600, Infinity)
         const proResult = await result
 
         expect(result).toBePromise()
@@ -227,7 +227,7 @@ describe('DiskCache', () => {
         , time_before_deletion: 3600
         })
 
-        const result = diskCache.setMetadata('key', 1800, 3600, null)
+        const result = diskCache.setMetadata('key', 1800, 3600, Infinity)
 
         expect(result).toBeUndefined()
         expect(getRawMetadata('key')).toEqual({
@@ -239,7 +239,7 @@ describe('DiskCache', () => {
       })
 
       test('metadata does not exist', () => {
-        const result = diskCache.setMetadata('key', 1800, 3600, null)
+        const result = diskCache.setMetadata('key', 1800, 3600, Infinity)
 
         expect(result).toBeUndefined()
         expect(getRawMetadata('key')).toEqual({
@@ -257,7 +257,7 @@ describe('DiskCache', () => {
         key: 'key'
       , updated_at: 0
       , time_to_live: 0
-      , time_before_deletion: undefined
+      , time_before_deletion: null
       })
 
       const result = diskCache.delete('key')
@@ -297,7 +297,7 @@ describe('DiskCache', () => {
           key: 'key'
         , updated_at: 0
         , time_to_live: 0
-        , time_before_deletion: undefined
+        , time_before_deletion: null
         })
 
         const result = diskCache.deleteMetadata('key')
@@ -320,7 +320,7 @@ describe('DiskCache', () => {
         key: 'key'
       , updated_at: 0
       , time_to_live: 0
-      , time_before_deletion: undefined
+      , time_before_deletion: null
       })
 
       const result = diskCache.clear()
@@ -348,7 +348,7 @@ describe('DiskCache', () => {
         key: 'key'
       , updated_at: 0
       , time_to_live: 0
-      , time_before_deletion: undefined
+      , time_before_deletion: null
       })
 
       const result = diskCache.clearMetadata()
@@ -365,7 +365,7 @@ describe('DiskCache', () => {
           key: 'key'
         , updated_at: 0
         , time_to_live: 0
-        , time_before_deletion: undefined
+        , time_before_deletion: null
         })
 
         await diskCache.deleteOrphanedItems()
@@ -381,14 +381,14 @@ describe('DiskCache', () => {
           key: 'orphan'
         , updated_at: 0
         , time_to_live: 0
-        , time_before_deletion: undefined
+        , time_before_deletion: null
         })
         setRawData('key', Buffer.from('value'))
         setRawMetadata({
           key: 'key'
         , updated_at: 0
         , time_to_live: 0
-        , time_before_deletion: undefined
+        , time_before_deletion: null
         })
 
         await diskCache.deleteOrphanedItems()
@@ -405,7 +405,7 @@ describe('DiskCache', () => {
         key: '#1'
       , updated_at: 0
       , time_to_live: 100
-      , time_before_deletion: undefined
+      , time_before_deletion: null
       })
       setRawData('#1', Buffer.from('value'))
       setRawMetadata({

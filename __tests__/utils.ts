@@ -17,8 +17,8 @@ export async function clearDiskCache() {
 interface IRawMetadata {
   key: string
   updated_at: number
-  time_to_live: number
-  time_before_deletion?: number
+  time_to_live: number | null
+  time_before_deletion: number | null
 }
 
 export async function setRawData(key: string, data: Buffer): Promise<void> {
