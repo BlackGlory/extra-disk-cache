@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.1](https://github.com/BlackGlory/extra-disk-cache/compare/v0.5.0...v0.5.1) (2022-04-10)
+
+
+### Features
+
+* add keysData, keysMetadata ([b9cf92e](https://github.com/BlackGlory/extra-disk-cache/commit/b9cf92e334c2d401f376a6c9acf720d1a9632f03))
+
 ## [0.5.0](https://github.com/BlackGlory/extra-disk-cache/compare/v0.4.3...v0.5.0) (2022-04-07)
 
 
