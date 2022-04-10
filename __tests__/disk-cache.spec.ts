@@ -10,6 +10,7 @@ import {
 , hasRawMetadata
 } from '@test/utils'
 import { delay } from 'extra-promise'
+import { toArray } from '@blackglory/prelude'
 import '@blackglory/jest-matchers'
 
 beforeEach(initializeDiskCache)
@@ -355,6 +356,28 @@ describe('DiskCache', () => {
 
       expect(result).toBeUndefined()
       expect(hasRawMetadata('key')).toBeFalsy()
+    })
+
+    test('keysData', async () => {
+      await setRawData('key', Buffer.from('value'))
+
+      const result = await diskCache.keysData()
+
+      expect(result).toStrictEqual(['key'])
+    })
+
+    test('keysMetadata', () => {
+      setRawMetadata({
+        key: 'key'
+      , updated_at: 0
+      , time_to_live: 0
+      , time_before_deletion: null
+      })
+
+      const iter = diskCache.keysMetadata()
+      const result = toArray(iter)
+
+      expect(result).toStrictEqual(['key'])
     })
 
     describe('deleteOrphanedItems(): Promise<void>', () => {

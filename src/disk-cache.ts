@@ -7,6 +7,7 @@ import { assert, isntUndefined, isUndefined, isObject, isPositiveInfinity, isNul
 import { setSchedule } from 'extra-timers'
 import { DebounceMicrotask, each } from 'extra-promise'
 import { ensureDir, findUpPackageFilename } from 'extra-filesystem'
+import { map } from 'iterable-operator'
 
 export interface IMetadata {
   updatedAt: number
@@ -235,6 +236,25 @@ export class DiskCache {
     `).run()
 
     this.cancelClearTimeout?.()
+  }
+
+  async keysData(): Promise<string[]> {
+    return new Promise(resolve => {
+      const stream = this._data.createKeyStream()
+      const results: string[] = []
+      stream
+        .on('data', (key: string) => results.push(key))
+        .once('close', () => resolve(results))
+    })
+  }
+
+  keysMetadata(): Iterable<string> {
+    const iter: Iterable<{ key: string }> = this._metadata.prepare(`
+      SELECT key
+        FROM cache_metadata
+    `).iterate()
+
+    return map(iter, ({ key }) => key)
   }
 
   private rescheduleClearTimeout = () => {

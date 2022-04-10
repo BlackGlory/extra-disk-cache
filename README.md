@@ -73,5 +73,8 @@ class DiskCache {
   clear(): Promise<void>
   clearData(): Promise<void>
   clearMetadata(): void
+
+  keysData(): Iterable<string[]>
+  keysMetadata(): AsyncIterable<string[]>
 }
 ```
