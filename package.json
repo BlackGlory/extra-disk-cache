@@ -26,10 +26,8 @@
     "build": "run-p build:*",
     "build:es2015": "run-s build:es2015:*",
     "build:es2015:compile": "tsc --project tsconfig.build.json --target es2015 --outDir lib/es2015",
-    "build:es2015:copy-d-ts": "cp src/*.d.ts lib/es2015",
     "build:es2018": "run-s build:es2018:*",
     "build:es2018:compile": "tsc --project tsconfig.build.json --target es2018 --outDir lib/es2018",
-    "build:es2018:copy-d-ts": "cp src/*.d.ts lib/es2018",
     "release": "standard-version"
   },
   "husky": {
@@ -44,7 +42,6 @@
     "@commitlint/config-conventional": "^16.2.1",
     "@types/better-sqlite3": "^7.5.0",
     "@types/jest": "^27.4.1",
-    "@types/levelup": "^5.1.1",
     "@types/node": "14",
     "@typescript-eslint/eslint-plugin": "^5.18.0",
     "@typescript-eslint/parser": "^5.18.0",
@@ -68,7 +65,7 @@
     "extra-promise": "^1.0.2",
     "extra-timers": "^0.2.5",
     "iterable-operator": "^1.0.1",
-    "level-rocksdb": "^5.0.0",
+    "level": "^8.0.0",
     "migrations-file": "^0.2.2"
   }
 }

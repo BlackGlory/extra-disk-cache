@@ -1,4 +1,4 @@
-import level, { ILevel } from 'level-rocksdb'
+import { Level } from 'level'
 import * as path from 'path'
 import Database, { Database as IDatabase } from 'better-sqlite3'
 import { readMigrations } from 'migrations-file'
@@ -7,7 +7,7 @@ import { assert, isntUndefined, isUndefined, isObject, isPositiveInfinity, isNul
 import { setSchedule } from 'extra-timers'
 import { DebounceMicrotask, each } from 'extra-promise'
 import { ensureDir, findUpPackageFilename } from 'extra-filesystem'
-import { map } from 'iterable-operator'
+import { map, toArrayAsync } from 'iterable-operator'
 
 export interface IMetadata {
   updatedAt: number
@@ -35,7 +35,7 @@ export class DiskCache {
   private debounceMicrotask = new DebounceMicrotask()
 
   protected constructor(
-    public _data: ILevel<Buffer>
+    public _data: Level<string, Buffer>
   , public _metadata: IDatabase
   ) {}
 
@@ -43,7 +43,7 @@ export class DiskCache {
     await ensureDir(dirname)
     const levelFilename = path.join(dirname, 'data.db')
     const sqliteFilename = path.join(dirname, 'metadata.db')
-    const data = level<Buffer>(levelFilename, { valueEncoding: 'binary' })
+    const data = new Level<string, Buffer>(levelFilename, { valueEncoding: 'binary' })
     const metadata = new Database(sqliteFilename)
     await migrateDatabase(metadata)
 
@@ -71,19 +71,11 @@ export class DiskCache {
    */
   async deleteOrphanedItems(): Promise<void> {
     // 删除孤儿metadata记录
-    await new Promise<void>(resolve => {
-      const pendings: Array<Promise<void>> = []
-      this._data.createKeyStream()
-        .on('data', key => {
-          if (!this.hasMetadata(key)) {
-            pendings.push(this.deleteData(key))
-          }
-        })
-        .once('close', async () => {
-          await Promise.all(pendings)
-          resolve()
-        })
-    })
+    for await (const key of this._data.keys()) {
+      if (!this.hasMetadata(key)) {
+        await this.deleteData(key)
+      }
+    }
 
     // 删除孤儿data记录
     const rows: Iterable<{ key: string }> = this._metadata.prepare(`
@@ -97,13 +89,11 @@ export class DiskCache {
     })
   }
 
-  hasData(key: string): Promise<boolean> {
-    return new Promise(resolve => {
-      let exists = false
-      this._data.createKeyStream({ gte: key, lte: key, limit: 1 })
-        .once('data', () => exists = true)
-        .once('close', () => resolve(exists))
-    })
+  async hasData(key: string): Promise<boolean> {
+    for await (const _ of this._data.keys({ gte: key, lte: key, limit: 1 })) {
+      return true
+    }
+    return false
   }
 
   hasMetadata(key: string): boolean {
@@ -239,13 +229,7 @@ export class DiskCache {
   }
 
   async keysData(): Promise<string[]> {
-    return new Promise(resolve => {
-      const stream = this._data.createKeyStream()
-      const results: string[] = []
-      stream
-        .on('data', (key: string) => results.push(key))
-        .once('close', () => resolve(results))
-    })
+    return await toArrayAsync(this._data.keys())
   }
 
   keysMetadata(): Iterable<string> {
