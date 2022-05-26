@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.6.0](https://github.com/BlackGlory/extra-disk-cache/compare/v0.5.1...v0.6.0) (2022-05-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* replace rocksdb with leveldb
+
+### Bug Fixes
+
+* memory leak ([ed4a1f3](https://github.com/BlackGlory/extra-disk-cache/commit/ed4a1f3169e8251712b8f8502c5d3070b164422d))
+
 ### [0.5.1](https://github.com/BlackGlory/extra-disk-cache/compare/v0.5.0...v0.5.1) (2022-04-10)
 
 
