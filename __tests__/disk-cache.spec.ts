@@ -2,12 +2,9 @@ import {
   diskCache
 , initializeDiskCache
 , clearDiskCache
-, setRawData
-, setRawMetadata
-, getRawData
-, getRawMetadata
-, hasRawData
-, hasRawMetadata
+, setRawItem
+, getRawItem
+, hasRawItem
 } from '@test/utils'
 import { delay } from 'extra-promise'
 import { toArray } from '@blackglory/prelude'
@@ -21,439 +18,175 @@ const TIME_ERROR = 1
 describe('DiskCache', () => {
   describe('Behavior', () => {
     it('will delete items automatically', async () => {
-      await diskCache.set('key', Buffer.from('value'), Date.now(), 100, 100)
+      diskCache.set('key', Buffer.from('value'), Date.now(), 100)
 
       await delay(201 + TIME_ERROR)
 
-      expect(await diskCache.hasData('key')).toBeFalsy()
-      expect(diskCache.hasMetadata('key')).toBeFalsy()
+      expect(diskCache.has('key')).toBeFalsy()
     })
   })
 
   describe('API', () => {
-    describe('hasData(key: string): Promise<boolean>', () => {
-      describe('data exists', () => {
-        it('return true', async () => {
-          await setRawData('key', Buffer.from('value'))
-
-          const result = diskCache.hasData('key')
-          const proResult = await result
-
-          expect(result).toBePromise()
-          expect(proResult).toBe(true)
-        })
-      })
-
-      describe('data does not exist', () => {
-        it('return false', async () => {
-          const result = diskCache.hasData('key')
-          const proResult = await result
-
-          expect(result).toBePromise()
-          expect(proResult).toBe(false)
-        })
-      })
-    })
-
-    describe('hasMetadata(key: string): boolean', () => {
-      describe('metadata exists', () => {
+    describe('has', () => {
+      describe('item exists', () => {
         it('return true', () => {
-          setRawMetadata({
+          setRawItem({
             key: 'key'
+          , value: Buffer.from('value')
           , updated_at: 0
           , time_to_live: 0
-          , time_before_deletion: null
           })
 
-          const result = diskCache.hasMetadata('key')
+          const result = diskCache.has('key')
 
           expect(result).toBe(true)
         })
       })
 
-      describe('metadata does not exist', () => {
+      describe('item does not exist', () => {
         it('return false', () => {
-          const result = diskCache.hasMetadata('key')
+          const result = diskCache.has('key')
 
           expect(result).toBe(false)
         })
       })
     })
 
-    describe('getData(key: string)', () => {
-      describe('data exists', () => {
-        it('return Buffer', async () => {
-          const data = Buffer.from('value')
-          setRawData('key', data)
-
-          const result = diskCache.getData('key')
-          const proResult = await result
-
-          expect(result).toBePromise()
-          expect(proResult).not.toBeUndefined()
-          expect(proResult!.equals(data)).toBeTruthy()
-        })
-      })
-
-      describe('data does not exist', () => {
-        it('return undefined', async () => {
-          const result = diskCache.getData('key')
-          const proResult = await result
-
-          expect(result).toBePromise()
-          expect(proResult).toBeUndefined()
-        })
-      })
-    })
-
-    describe('getMetadata(key: string): IMetadata | undefined', () => {
-      describe('metadata exists', () => {
-        it('return IMetadata', () => {
-          setRawMetadata({
+    describe('get', () => {
+      describe('item exists', () => {
+        it('return item', () => {
+          const value = Buffer.from('value')
+          setRawItem({
             key: 'key'
+          , value
           , updated_at: 0
           , time_to_live: 0
-          , time_before_deletion: null
           })
 
-          const result = diskCache.getMetadata('key')
+          const result = diskCache.get('key')
 
           expect(result).toStrictEqual({
-            updatedAt: 0
+            value
+          , updatedAt: 0
           , timeToLive: 0
-          , timeBeforeDeletion: Infinity
           })
         })
       })
 
-      describe('metadata does not exist', () => {
-        it('return undefined', () => {
-          const result = diskCache.getMetadata('key')
+      describe('item does not exist', () => {
+        it('return item', () => {
+          const result = diskCache.get('key')
 
           expect(result).toBeUndefined()
         })
       })
     })
 
-    describe(`
-      set(
-        key: string
-      , value: Buffer
-      , updatedAt: number
-      , timeToLive: number
-      , timeBeforeDeletion: number | null
-      ): Promise<void>
-    `, () => {
-      test('data exists', async () => {
-        const data = Buffer.from('value')
-        await setRawData('key', data)
-        setRawMetadata({
+    describe('set', () => {
+      test('item exists', () => {
+        const value = Buffer.from('value')
+        setRawItem({
           key: 'key'
+        , value
         , updated_at: 0
         , time_to_live: 0
-        , time_before_deletion: 3600
         })
-        const newData = Buffer.from('new value')
+        const newValue = Buffer.from('new value')
 
-        const result = diskCache.set('key', newData, 1800, 3600, Infinity)
-        const proResult = await result
-
-        expect(result).toBePromise()
-        expect(proResult).toBeUndefined()
-        expect((await getRawData('key')).equals(newData)).toBeTruthy()
-        expect(getRawMetadata('key')).toEqual({
-          key: 'key'
-        , updated_at: 1800
-        , time_to_live: 3600
-        , time_before_deletion: null
-        })
-      })
-
-      test('data does not exist', async () => {
-        const data = Buffer.from('value')
-        const result = diskCache.set('key', data, 1800, 3600, Infinity)
-        const proResult = await result
-
-        expect(result).toBePromise()
-        expect(proResult).toBeUndefined()
-        expect((await getRawData('key')).equals(data)).toBeTruthy()
-        expect(getRawMetadata('key')).toEqual({
-          key: 'key'
-        , updated_at: 1800
-        , time_to_live: 3600
-        , time_before_deletion: null
-        })
-      })
-    })
-
-    describe('setData(key: string, value: Buffer): Promise<void>', () => {
-      test('data exists', async () => {
-        const data = Buffer.from('value')
-        await setRawData('key', data)
-        const newData = Buffer.from('new value')
-
-        const result = diskCache.setData('key', newData)
-        const proResult = await result
-        
-        expect(result).toBePromise()
-        expect(proResult).toBeUndefined()
-        expect((await getRawData('key')).equals(newData)).toBeTruthy()
-      })
-
-      test('data does not exist', async () => {
-        const data = Buffer.from('value')
-
-        const result = diskCache.setData('key', data)
-        const proResult = await result
-        
-        expect(result).toBePromise()
-        expect(proResult).toBeUndefined()
-        expect((await getRawData('key')).equals(data)).toBeTruthy()
-      })
-    })
-
-    describe(`
-      setMetadata(
-        key: string
-      , updatedAt: number
-      , timeToLive: number
-      , timeBeforeDeletion: number | null
-      ): void
-    `, () => {
-      test('metadata exists', () => {
-        setRawMetadata({
-          key: 'key'
-        , updated_at: 0
-        , time_to_live: 0
-        , time_before_deletion: 3600
-        })
-
-        const result = diskCache.setMetadata('key', 1800, 3600, Infinity)
+        const result = diskCache.set('key', newValue, 1800, 3600)
 
         expect(result).toBeUndefined()
-        expect(getRawMetadata('key')).toEqual({
+        expect(getRawItem('key')).toEqual({
           key: 'key'
+        , value: newValue
         , updated_at: 1800
         , time_to_live: 3600
-        , time_before_deletion: null
         })
       })
 
-      test('metadata does not exist', () => {
-        const result = diskCache.setMetadata('key', 1800, 3600, Infinity)
+      test('data does not exist', () => {
+        const value = Buffer.from('value')
+        const result = diskCache.set('key', value, 1800, 3600)
 
         expect(result).toBeUndefined()
-        expect(getRawMetadata('key')).toEqual({
+        expect(getRawItem('key')).toEqual({
           key: 'key'
+        , value
         , updated_at: 1800
         , time_to_live: 3600
-        , time_before_deletion: null
         })
       })
     })
 
-    test('delete(key: string): Promise<void>', async () => {
-      await setRawData('key', Buffer.from('value'))
-      setRawMetadata({
+    test('delete', () => {
+      const value = Buffer.from('value')
+      setRawItem({
         key: 'key'
+      , value
       , updated_at: 0
       , time_to_live: 0
-      , time_before_deletion: null
       })
 
       const result = diskCache.delete('key')
-      const proResult = await result
 
-      expect(result).toBePromise()
-      expect(proResult).toBeUndefined()
-      expect(await hasRawData('key')).toBeFalsy()
-      expect(hasRawMetadata('key')).toBeFalsy()
+      expect(result).toBeUndefined()
+      expect(hasRawItem('key')).toBeFalsy()
     })
 
-    describe('deleteData(key: string): Promise<void>', () => {
-      test('data exists', async () => {
-        await setRawData('key', Buffer.from('value'))
-
-        const result = diskCache.deleteData('key')
-        const proResult = await result
-
-        expect(result).toBePromise()
-        expect(proResult).toBeUndefined()
-        expect(await hasRawData('key')).toBeFalsy()
-      })
-
-      test('data does not exist', async () => {
-        const result = diskCache.deleteData('key')
-        const proResult = await result
-
-        expect(result).toBePromise()
-        expect(proResult).toBeUndefined()
-        expect(await hasRawData('key')).toBeFalsy()
-      })
-    })
-
-    describe('deleteMetadata(key: string): void', () => {
-      test('metadata exists', () => {
-        setRawMetadata({
-          key: 'key'
-        , updated_at: 0
-        , time_to_live: 0
-        , time_before_deletion: null
-        })
-
-        const result = diskCache.deleteMetadata('key')
-
-        expect(result).toBeUndefined()
-        expect(hasRawMetadata('key')).toBeFalsy()
-      })
-
-      test('metadata does not exists', () => {
-        const result = diskCache.deleteMetadata('key')
-
-        expect(result).toBeUndefined()
-        expect(hasRawMetadata('key')).toBeFalsy()
-      })
-    })
-
-    test('clear(): Promise<void>', async () => {
-      await setRawData('key', Buffer.from('value'))
-      setRawMetadata({
+    test('clear', () => {
+      setRawItem({
         key: 'key'
+      , value: Buffer.from('value')
       , updated_at: 0
       , time_to_live: 0
-      , time_before_deletion: null
       })
 
       const result = diskCache.clear()
-      const proResult = await result
-
-      expect(result).toBePromise()
-      expect(proResult).toBeUndefined()
-      expect(await hasRawData('key')).toBeFalsy()
-      expect(hasRawMetadata('key')).toBeFalsy()
-    })
-
-    test('clearData(): Promise<void>', async () => {
-      await setRawData('key', Buffer.from('value'))
-
-      const result = diskCache.clearData()
-      const proResult = await result
-
-      expect(result).toBePromise()
-      expect(proResult).toBeUndefined()
-      expect(await hasRawData('key')).toBeFalsy()
-    })
-
-    test('clearMetadata(): void', () => {
-      setRawMetadata({
-        key: 'key'
-      , updated_at: 0
-      , time_to_live: 0
-      , time_before_deletion: null
-      })
-
-      const result = diskCache.clearMetadata()
 
       expect(result).toBeUndefined()
-      expect(hasRawMetadata('key')).toBeFalsy()
+      expect(hasRawItem('key')).toBeFalsy()
     })
 
-    test('keysData', async () => {
-      await setRawData('key', Buffer.from('value'))
-
-      const result = await diskCache.keysData()
-
-      expect(result).toStrictEqual(['key'])
-    })
-
-    test('keysMetadata', () => {
-      setRawMetadata({
+    test('keys', () => {
+      setRawItem({
         key: 'key'
+      , value: Buffer.from('value')
       , updated_at: 0
       , time_to_live: 0
-      , time_before_deletion: null
       })
 
-      const iter = diskCache.keysMetadata()
+      const iter = diskCache.keys()
       const result = toArray(iter)
 
       expect(result).toStrictEqual(['key'])
     })
 
-    describe('deleteOrphanedItems(): Promise<void>', () => {
-      test('orphaned data', async () => {
-        setRawData('orphan', Buffer.from('value'))
-        setRawData('key', Buffer.from('value'))
-        setRawMetadata({
-          key: 'key'
-        , updated_at: 0
-        , time_to_live: 0
-        , time_before_deletion: null
-        })
-
-        await diskCache.deleteOrphanedItems()
-
-        expect(await hasRawData('orpah')).toBeFalsy()
-        expect(hasRawMetadata('orpah')).toBeFalsy()
-        expect(await hasRawData('key')).toBeTruthy()
-        expect(hasRawMetadata('key')).toBeTruthy()
-      })
-
-      test('orphaned metadata', async () => {
-        setRawMetadata({
-          key: 'orphan'
-        , updated_at: 0
-        , time_to_live: 0
-        , time_before_deletion: null
-        })
-        setRawData('key', Buffer.from('value'))
-        setRawMetadata({
-          key: 'key'
-        , updated_at: 0
-        , time_to_live: 0
-        , time_before_deletion: null
-        })
-
-        await diskCache.deleteOrphanedItems()
-
-        expect(await hasRawData('orphan')).toBeFalsy()
-        expect(hasRawMetadata('orphan')).toBeFalsy()
-        expect(await hasRawData('key')).toBeTruthy()
-        expect(hasRawMetadata('key')).toBeTruthy()
-      })
-    })
-
-    test('purgeDeleteableItems(timestamp: number): Promise<void>', async () => {
-      setRawMetadata({
+    test('purgeDeleteableItems', () => {
+      const value = Buffer.from('value')
+      setRawItem({
         key: '#1'
+      , value
       , updated_at: 0
-      , time_to_live: 100
-      , time_before_deletion: null
+      , time_to_live: null
       })
-      setRawData('#1', Buffer.from('value'))
-      setRawMetadata({
+      setRawItem({
         key: '#2'
+      , value
       , updated_at: 0
       , time_to_live: 100
-      , time_before_deletion: 100
       })
-      setRawData('#2', Buffer.from('value'))
-      setRawMetadata({
+      setRawItem({
         key: '#3'
+      , value
       , updated_at: 0
-      , time_to_live: 100
-      , time_before_deletion: 200
+      , time_to_live: 200
       })
-      setRawData('#3', Buffer.from('value'))
 
-      await diskCache.purgeDeleteableItems(201)
+      diskCache._purgeDeleteableItems(150)
       
-      expect(await hasRawData('#1')).toBeTruthy()
-      expect(hasRawMetadata('#1')).toBeTruthy()
-      expect(await hasRawData('#2')).toBeFalsy()
-      expect(hasRawMetadata('#2')).toBeFalsy()
-      expect(await hasRawData('#3')).toBeTruthy()
-      expect(hasRawMetadata('#3')).toBeTruthy()
+      expect(hasRawItem('#1')).toBeTruthy()
+      expect(hasRawItem('#2')).toBeFalsy()
+      expect(hasRawItem('#3')).toBeTruthy()
     })
   })
 })

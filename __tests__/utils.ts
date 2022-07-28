@@ -1,71 +1,49 @@
 import { DiskCache } from '@src/disk-cache'
-import { createTempDirSync, emptyDir } from 'extra-filesystem'
-import { isObject } from '@blackglory/types'
 
-const tmpDir = createTempDirSync()
 export let diskCache: DiskCache
 
 export async function initializeDiskCache() {
-  diskCache = await DiskCache.create(tmpDir)
+  diskCache = await DiskCache.create()
 }
 
 export async function clearDiskCache() {
-  await diskCache.close()
-  await emptyDir(tmpDir)
+  diskCache.close()
 }
 
-interface IRawMetadata {
+interface IRawItem {
   key: string
+  value: Buffer
   updated_at: number
   time_to_live: number | null
-  time_before_deletion: number | null
 }
 
-export async function setRawData(key: string, data: Buffer): Promise<void> {
-  await diskCache._data.put(key, Buffer.from(data))
-}
-
-export function setRawMetadata(raw: IRawMetadata): void {
-  diskCache._metadata.prepare(`
-    INSERT INTO cache_metadata(
+export function setRawItem(raw: IRawItem): void {
+  diskCache._db.prepare(`
+    INSERT INTO cache(
                   key
+                , value
                 , updated_at
                 , time_to_live
-                , time_before_deletion
                 )
-         VALUES ($key, $updated_at, $time_to_live, $time_before_deletion)
+         VALUES ($key, $value, $updated_at, $time_to_live)
   `).run(raw)
 }
 
-export async function getRawData(key: string): Promise<Buffer> {
-  return await diskCache._data.get(key)
-}
-
-export function getRawMetadata(key: string): IRawMetadata {
-  return diskCache._metadata.prepare(`
+export function getRawItem(key: string): IRawItem {
+  return diskCache._db.prepare(`
     SELECT *
-      FROM cache_metadata
+      FROM cache
      WHERE key = $key
   `).get({ key })
 }
 
-export async function hasRawData(key: string): Promise<boolean> {
-  try {
-    await diskCache._data.get(key)
-    return true
-  } catch (err) {
-    if (isObject(err) && err.notFound) return false
-    throw err
-  }
-}
-
-export function hasRawMetadata(key: string): boolean {
-  const result: { metadata_exists: 1 | 0 } = diskCache._metadata.prepare(`
+export function hasRawItem(key: string): boolean {
+  const result: { item_exists: 1 | 0 } = diskCache._db.prepare(`
     SELECT EXISTS(
              SELECT *
-               FROM cache_metadata
+               FROM cache
               WHERE key = $key
-           ) AS metadata_exists
+           ) AS item_exists
   `).get({ key })
-  return result.metadata_exists === 1
+  return result.item_exists === 1
 }
