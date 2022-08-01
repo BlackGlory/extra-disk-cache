@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.1](https://github.com/BlackGlory/extra-disk-cache/compare/v0.7.0...v0.7.1) (2022-08-01)
+
+
+### Features
+
+* add DiskCacheView ([0ed031f](https://github.com/BlackGlory/extra-disk-cache/commit/0ed031fc6ea2e5fdb7d2a4ecd128ab9ecde44e7d))
+
 ## [0.7.0](https://github.com/BlackGlory/extra-disk-cache/compare/v0.6.0...v0.7.0) (2022-07-28)
 
 
