@@ -1,5 +1,5 @@
 # extra-disk-cache
-High-performance persistent cache, using SQLite3 and RocksDB under the hood.
+Persistent cache.
 
 ## Install
 ```sh
