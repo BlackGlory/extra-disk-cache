@@ -5,7 +5,7 @@ import { migrate } from '@blackglory/better-sqlite3-migrations'
 import { go, assert, isNull, isntUndefined, isUndefined } from '@blackglory/prelude'
 import { setSchedule } from 'extra-timers'
 import { DebounceMicrotask } from 'extra-promise'
-import { ensureDir, findUpPackageFilename } from 'extra-filesystem'
+import { findUpPackageFilename } from 'extra-filesystem'
 import { map } from 'iterable-operator'
 
 export class DiskCache {
@@ -16,14 +16,7 @@ export class DiskCache {
 
   static async create(filename?: string): Promise<DiskCache> {
     const db = await go(async () => {
-      const db = await go(async () => {
-        if (filename) {
-          await ensureDir(path.dirname(filename))
-          return new Database(filename)
-        } else {
-          return new Database(':memory:')
-        }
-      })
+      const db = new Database(filename ?? ':memory:')
 
       await migrateDatabase(db)
 
