@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.8.0](https://github.com/BlackGlory/extra-disk-cache/compare/v0.7.2...v0.8.0) (2022-08-02)
+
+
+### ⚠ BREAKING CHANGES
+
+* `DiskCache.create(dirname)` => `DiskCache.create(filename)`
+```ts
+filename = `${dirname}/data.db`
+```
+
+* replace dirname with filename ([2175a96](https://github.com/BlackGlory/extra-disk-cache/commit/2175a96ca12ae9923bf27c21c91e41d2d95c3855))
+
 ### [0.7.2](https://github.com/BlackGlory/extra-disk-cache/compare/v0.7.1...v0.7.2) (2022-08-01)
 
 ### [0.7.1](https://github.com/BlackGlory/extra-disk-cache/compare/v0.7.0...v0.7.1) (2022-08-01)
