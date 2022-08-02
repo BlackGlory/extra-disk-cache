@@ -21,7 +21,7 @@ const { value } = cache.get('key')
 #### DiskCache
 ```ts
 class DiskCache {
-  static create(dirname?: string): Promise<DiskCache>
+  static create(filename?: string): Promise<DiskCache>
 
   close(): void
 

@@ -14,12 +14,11 @@ export class DiskCache {
 
   protected constructor(public _db: IDatabase) {}
 
-  static async create(dirname?: string): Promise<DiskCache> {
+  static async create(filename?: string): Promise<DiskCache> {
     const db = await go(async () => {
       const db = await go(async () => {
-        if (dirname) {
-          await ensureDir(dirname)
-          const filename = path.join(dirname, 'data.db')
+        if (filename) {
+          await ensureDir(path.dirname(filename))
           return new Database(filename)
         } else {
           return new Database(':memory:')
