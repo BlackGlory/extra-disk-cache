@@ -1,5 +1,5 @@
 # extra-disk-cache
-Persistent cache.
+A persistent cache.
 
 ## Install
 ```sh
