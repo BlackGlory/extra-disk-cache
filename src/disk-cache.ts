@@ -95,7 +95,12 @@ export class DiskCache {
      */
   , timeToLive: number | null = null
   ): void => {
-    const set = lazyStatic(() => this._db.prepare(`
+    assert(
+      isNull(timeToLive) || timeToLive >= 0
+    , 'timeToLive should be greater than or equal to 0'
+    )
+
+    lazyStatic(() => this._db.prepare(`
       INSERT INTO cache (
                     key
                   , value
@@ -107,14 +112,7 @@ export class DiskCache {
                DO UPDATE SET value = $value
                            , updated_at = $updatedAt
                            , time_to_live = $timeToLive
-    `), [this._db])
-
-    assert(
-      isNull(timeToLive) || timeToLive >= 0
-    , 'timeToLive should be greater than or equal to 0'
-    )
-
-    set.run({
+    `), [this._db]).run({
       key
     , value
     , updatedAt
