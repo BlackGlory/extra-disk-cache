@@ -58,7 +58,7 @@
     "typescript-transform-paths": "^3.4.4"
   },
   "dependencies": {
-    "@blackglory/better-sqlite3-migrations": "^0.1.15",
+    "@blackglory/better-sqlite3-migrations": "^0.1.16",
     "@blackglory/prelude": "^0.1.8",
     "@blackglory/types": "^1.4.0",
     "better-sqlite3": "^8.0.0",
