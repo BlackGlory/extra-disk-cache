@@ -87,7 +87,7 @@ export class DiskCache {
   set = withLazyStatic((
     key: string
   , value: Buffer
-  , updatedAt: number
+  , updatedAt: number = Date.now()
     /**
      * `timeToLive > 0`: items will expire after `timeToLive` milliseconds.
      * `timeToLive = 0`: items will expire immediately.

@@ -43,7 +43,7 @@ export class DiskCacheView<K, V> {
   set(
     key: K
   , value: V
-  , updatedAt: number
+  , updatedAt: number = Date.now()
     /**
      * `timeToLive > 0`: items will expire after `timeToLive` milliseconds.
      * `timeToLive = 0`: items will expire immediately.
