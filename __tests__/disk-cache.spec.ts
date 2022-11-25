@@ -158,7 +158,7 @@ describe('DiskCache', () => {
     expect(result).toStrictEqual(['key'])
   })
 
-  test('purgeDeleteableItems', () => {
+  test('clearExpiredItems', () => {
     const value = Buffer.from('value')
     setRawItem({
       key: '#1'
@@ -179,7 +179,7 @@ describe('DiskCache', () => {
     , time_to_live: 200
     })
 
-    diskCache._purgeDeleteableItems(150)
+    diskCache._clearExpiredItems(150)
     
     expect(hasRawItem('#1')).toBeTruthy()
     expect(hasRawItem('#2')).toBeFalsy()
