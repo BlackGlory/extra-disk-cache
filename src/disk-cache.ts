@@ -10,7 +10,7 @@ import { map } from 'iterable-operator'
 import { withLazyStatic, lazyStatic } from 'extra-lazy'
 
 export class DiskCache {
-  private cancelClearTimeout?: () => void
+  private cancelClearTask?: () => void
   private debounceMicrotask = new DebounceMicrotask()
 
   protected constructor(public _db: IDatabase) {}
@@ -26,7 +26,7 @@ export class DiskCache {
 
     const diskCache = new this(db)
     diskCache._purgeDeleteableItems(Date.now())
-    diskCache.rescheduleClearTimeout()
+    diskCache.rescheduleClearTask()
 
     return diskCache
 
@@ -39,7 +39,7 @@ export class DiskCache {
   }
 
   close(): void {
-    this.cancelClearTimeout?.()
+    this.cancelClearTask?.()
     this._db.exec(`
       PRAGMA analysis_limit=400;
       PRAGMA optimize;
@@ -119,7 +119,7 @@ export class DiskCache {
     , timeToLive
     })
 
-    this.debounceMicrotask.queue(this.rescheduleClearTimeout)
+    this.debounceMicrotask.queue(this.rescheduleClearTask)
   })
 
   delete = withLazyStatic((key: string): void => {
@@ -128,7 +128,7 @@ export class DiskCache {
        WHERE key = $key
     `), [this._db]).run({ key })
 
-    this.debounceMicrotask.queue(this.rescheduleClearTimeout)
+    this.debounceMicrotask.queue(this.rescheduleClearTask)
   })
 
   clear = withLazyStatic((): void => {
@@ -136,7 +136,7 @@ export class DiskCache {
       DELETE FROM cache
     `), [this._db]).run()
 
-    this.cancelClearTimeout?.()
+    this.cancelClearTask?.()
   })
 
   keys = withLazyStatic((): Iterable<string> => {
@@ -148,8 +148,8 @@ export class DiskCache {
     return map(iter, ({ key }) => key)
   })
 
-  private rescheduleClearTimeout = withLazyStatic(() => {
-    this.cancelClearTimeout?.()
+  private rescheduleClearTask = withLazyStatic(() => {
+    this.cancelClearTask?.()
 
     const row: { timestamp: number } | undefined = lazyStatic(() => this._db.prepare(`
       SELECT updated_at + time_to_live AS timestamp
@@ -160,14 +160,15 @@ export class DiskCache {
     `), [this._db]).get()
 
     if (isntUndefined(row)) {
-      const cancel = setSchedule(row.timestamp, () => {
+      const cancelSchedule = setSchedule(row.timestamp, () => {
         this._purgeDeleteableItems(Date.now())
-        this.debounceMicrotask.queue(this.rescheduleClearTimeout)
+        this.debounceMicrotask.queue(this.rescheduleClearTask)
       })
 
-      this.cancelClearTimeout = () => {
-        cancel()
-        delete this.cancelClearTimeout
+      this.cancelClearTask = () => {
+        this.debounceMicrotask.cancel(this.rescheduleClearTask)
+        cancelSchedule()
+        delete this.cancelClearTask
       }
     }
   })
