@@ -84,6 +84,7 @@ class DiskCacheView<K, V> {
      */
   , timeToLive: number | null = null
   ): void
+  clear(): void
   delete(key: K): void
   keys(): Iterable<K>
 }

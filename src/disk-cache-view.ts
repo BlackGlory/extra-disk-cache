@@ -63,6 +63,10 @@ export class DiskCacheView<K, V> {
     this.cache.delete(this.keyConverter.toString(key))
   }
 
+  clear(): void {
+    this.cache.clear()
+  }
+
   keys(): Iterable<K> {
     return map(
       this.cache.keys()
