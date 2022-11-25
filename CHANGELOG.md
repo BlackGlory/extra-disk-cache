@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.8.11](https://github.com/BlackGlory/extra-disk-cache/compare/v0.8.10...v0.8.11) (2022-11-25)
+
+
+### Bug Fixes
+
+* cancelClearTask ([0639da9](https://github.com/BlackGlory/extra-disk-cache/commit/0639da9523e5bfddf1e2661f8a8300523fc009ea))
+
 ### [0.8.10](https://github.com/BlackGlory/extra-disk-cache/compare/v0.8.9...v0.8.10) (2022-11-25)
 
 
