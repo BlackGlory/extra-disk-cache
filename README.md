@@ -89,3 +89,10 @@ class DiskCacheView<K, V> {
   keys(): Iterable<K>
 }
 ```
+
+#### JSONValueConverter
+```ts
+class JSONValueConverter<T> implements IValueConverter<T> {
+  constructor(private encoding: BufferEncoding = 'utf-8')
+}
+```
