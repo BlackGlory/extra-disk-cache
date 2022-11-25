@@ -96,3 +96,8 @@ class JSONValueConverter<T> implements IValueConverter<T> {
   constructor(private encoding: BufferEncoding = 'utf-8')
 }
 ```
+
+#### PassthroughKeyConverter
+```ts
+class PassthroughKeyConverter implements IKeyConverter<string> 
+```

@@ -7,7 +7,7 @@ export class JSONValueConverter<T> implements IValueConverter<T> {
     return JSON.parse(buffer.toString(this.encoding))
   }
 
-  toBuffer(val: T): Buffer {
-    return Buffer.from(JSON.stringify(val), this.encoding)
+  toBuffer(value: T): Buffer {
+    return Buffer.from(JSON.stringify(value), this.encoding)
   }
 }

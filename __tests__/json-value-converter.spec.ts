@@ -6,7 +6,7 @@ describe('JSONValueConverter', () => {
 
     const result = converter.toBuffer(['foo', 'bar'])
 
-    expect(result).toStrictEqual(new Buffer(JSON.stringify(['foo', 'bar'])))
+    expect(result).toStrictEqual(Buffer.from(JSON.stringify(['foo', 'bar'])))
   })
 
   test('fromBuffer', () => {
