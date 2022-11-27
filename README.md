@@ -106,3 +106,10 @@ class MessagePackValueConverter<T> implements IValueConverter<T>
 ```ts
 class PassthroughKeyConverter implements IKeyConverter<string>
 ```
+
+#### IndexKeyConverter
+```ts
+class IndexKeyConverter implements IKeyConverter<number> {
+  constructor(radix: number = 10)
+}
+```
