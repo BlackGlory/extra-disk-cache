@@ -2501,10 +2501,10 @@ extra-promise@^4.1.0, extra-promise@^4.3.0:
     lodash "^4.17.21"
     return-style "^1.0.0"
 
-extra-promise@^4.3.1:
-  version "4.3.1"
-  resolved "https://registry.yarnpkg.com/extra-promise/-/extra-promise-4.3.1.tgz#b0fea324667df31f8e8f5ab5a3f50ba031fb3335"
-  integrity sha512-ysGzHOcIWKqPCcKfeTtN1wxSa1hLvuXVajvLl37Hq7vFJ61sFIFe8CAD/QKKAZvkXhaakraMS7NjCQSfqpog0g==
+extra-promise@^4.4.0:
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/extra-promise/-/extra-promise-4.4.0.tgz#5aa7011b14a4a69fd834c454f27a2a928668dc09"
+  integrity sha512-TbizIl9ko60GDiTCOviTtZL/uF3Y9sJMSdYw4U7N7bT0AY+I+E5dbzfugEmVmlOmzrRttKUg6gF3ov88PAhs9w==
   dependencies:
     "@blackglory/errors" "^2.3.0"
     "@blackglory/go" "^1.1.2"
@@ -2513,6 +2513,7 @@ extra-promise@^4.3.1:
     extra-fsm "^0.1.1"
     extra-generator "^0.2.21"
     extra-json-stable-stringify "^0.1.1"
+    extra-timers "^0.2.5"
     extra-utils "^3.4.0"
     hotypes "^0.5.1"
     iterable-operator "^2.5.0"

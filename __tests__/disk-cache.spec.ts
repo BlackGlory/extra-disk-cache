@@ -161,6 +161,21 @@ describe('DiskCache', () => {
     expect(result).toStrictEqual(['key'])
   })
 
+  describe('close', () => {
+    test('create, close', async () => {
+      const cache = await DiskCache.create()
+
+      cache.close()
+    })
+
+    test('create, set, close', async () => {
+      const cache = await DiskCache.create()
+      cache.set('key', Buffer.from('value'), Date.now(), 1000)
+
+      cache.close()
+    })
+  })
+
   test('clearExpiredItems', async () => {
     const cache = await DiskCache.create()
     const value = Buffer.from('value')

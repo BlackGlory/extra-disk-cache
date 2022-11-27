@@ -2,16 +2,16 @@ import path from 'path'
 import Database, { Database as IDatabase } from 'better-sqlite3'
 import { findMigrationFilenames, readMigrationFile } from 'migration-files'
 import { migrate } from '@blackglory/better-sqlite3-migrations'
-import { go, assert, isNull, isntUndefined, isUndefined } from '@blackglory/prelude'
+import { go, pass, assert, isNull, isntUndefined, isUndefined } from '@blackglory/prelude'
 import { setSchedule } from 'extra-timers'
-import { map, DebounceMicrotask } from 'extra-promise'
+import { map, DebounceMacrotask } from 'extra-promise'
 import { findUpPackageFilename } from 'extra-filesystem'
 import * as Iter from 'iterable-operator'
 import { withLazyStatic, lazyStatic } from 'extra-lazy'
 
 export class DiskCache {
-  private cancelClearingTask?: () => void
-  private debounceMicrotask = new DebounceMicrotask()
+  private macrotask = new DebounceMacrotask()
+  private cancelScheduledTasks?: () => void
 
   protected constructor(public _db: IDatabase) {}
 
@@ -31,8 +31,11 @@ export class DiskCache {
     return diskCache
 
     async function migrateDatabase(db: IDatabase): Promise<void> {
-      const pkgRoot = path.join((await findUpPackageFilename(__dirname))!, '..')
-      const migrationsPath = path.join(pkgRoot, 'migrations')
+      const packageFilename = await findUpPackageFilename(__dirname)
+      assert(packageFilename, 'package.json not found')
+
+      const packageRoot = path.dirname(packageFilename)
+      const migrationsPath = path.join(packageRoot, 'migrations')
       const migrationFilenames = await findMigrationFilenames(migrationsPath)
       const migrations = await map(migrationFilenames, readMigrationFile)
       migrate(db, migrations)
@@ -40,11 +43,14 @@ export class DiskCache {
   }
 
   close(): void {
-    this.cancelClearingTask?.()
+    this.macrotask.cancel(this.rescheduleClearingTask)
+    this.cancelScheduledTasks?.()
+
     this._db.exec(`
       PRAGMA analysis_limit=400;
       PRAGMA optimize;
     `)
+
     this._db.close()
   }
 
@@ -120,7 +126,7 @@ export class DiskCache {
     , timeToLive
     })
 
-    this.debounceMicrotask.queue(this.rescheduleClearingTask)
+    this.macrotask.queue(this.rescheduleClearingTask)
   })
 
   delete = withLazyStatic((key: string): void => {
@@ -129,7 +135,7 @@ export class DiskCache {
        WHERE key = $key
     `), [this._db]).run({ key })
 
-    this.debounceMicrotask.queue(this.rescheduleClearingTask)
+    this.macrotask.queue(this.rescheduleClearingTask)
   })
 
   clear = withLazyStatic((): void => {
@@ -137,7 +143,7 @@ export class DiskCache {
       DELETE FROM cache
     `), [this._db]).run()
 
-    this.cancelClearingTask?.()
+    this.cancelScheduledTasks?.()
   })
 
   keys = withLazyStatic((): Iterable<string> => {
@@ -150,8 +156,17 @@ export class DiskCache {
   })
 
   private rescheduleClearingTask = withLazyStatic(() => {
-    this.cancelClearingTask?.()
+    this.cancelScheduledTasks?.()
+    const cancelClearingTask = this.scheduleClearingTask()
 
+    this.cancelScheduledTasks = () => {
+      cancelClearingTask()
+
+      delete this.cancelScheduledTasks
+    }
+  })
+
+  private scheduleClearingTask(): () => void {
     const row: { timestamp: number } | undefined = lazyStatic(() => this._db.prepare(`
       SELECT updated_at + time_to_live AS timestamp
         FROM cache
@@ -161,18 +176,15 @@ export class DiskCache {
     `), [this._db]).get()
 
     if (isntUndefined(row)) {
-      const cancelSchedule = setSchedule(row.timestamp, () => {
+      const cancel = setSchedule(row.timestamp, () => {
         this._clearExpiredItems(Date.now())
-        this.debounceMicrotask.queue(this.rescheduleClearingTask)
+        this.macrotask.queue(this.rescheduleClearingTask)
       })
-
-      this.cancelClearingTask = () => {
-        this.debounceMicrotask.cancel(this.rescheduleClearingTask)
-        cancelSchedule()
-        delete this.cancelClearingTask
-      }
+      return cancel
     }
-  })
+
+    return pass
+  }
 
   /**
    * @param timestamp 作为过期临界线的时间戳
