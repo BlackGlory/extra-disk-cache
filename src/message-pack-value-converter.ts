@@ -1,17 +1,12 @@
-import { Packr } from 'msgpackr'
+import * as msgpack from 'msgpack-lite'
 import { IValueConverter } from './disk-cache-view'
 
 export class MessagePackValueConverter<T> implements IValueConverter<T> {
-  private packer = new Packr({
-    // https://github.com/kriszyp/msgpackr/issues/34
-    variableMapSize: true
-  })
-
   fromBuffer(buffer: Buffer): T {
-    return this.packer.unpack(buffer)
+    return msgpack.decode(buffer)
   }
 
   toBuffer(value: T): Buffer {
-    return this.packer.pack(value)
+    return msgpack.encode(value)
   }
 }
