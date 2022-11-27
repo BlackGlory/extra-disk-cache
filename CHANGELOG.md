@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.8.12](https://github.com/BlackGlory/extra-disk-cache/compare/v0.8.11...v0.8.12) (2022-11-27)
+
+
+### Features
+
+* add `IndexKeyConverter` ([3e2b8a1](https://github.com/BlackGlory/extra-disk-cache/commit/3e2b8a122805a29f352244f004eebf1d8539b700))
+* add `MessagePackValueConverter` ([689d64e](https://github.com/BlackGlory/extra-disk-cache/commit/689d64efbb03b1cb8466e0d0da88a2f58f4dc2a8))
+
 ### [0.8.11](https://github.com/BlackGlory/extra-disk-cache/compare/v0.8.10...v0.8.11) (2022-11-25)
 
 
