@@ -1,12 +1,12 @@
 import path from 'path'
 import Database, { Database as IDatabase } from 'better-sqlite3'
-import { readMigrations } from 'migrations-file'
+import { findMigrationFilenames, readMigrationFile } from 'migration-files'
 import { migrate } from '@blackglory/better-sqlite3-migrations'
 import { go, assert, isNull, isntUndefined, isUndefined } from '@blackglory/prelude'
 import { setSchedule } from 'extra-timers'
-import { DebounceMicrotask } from 'extra-promise'
+import { map, DebounceMicrotask } from 'extra-promise'
 import { findUpPackageFilename } from 'extra-filesystem'
-import { map } from 'iterable-operator'
+import * as Iter from 'iterable-operator'
 import { withLazyStatic, lazyStatic } from 'extra-lazy'
 
 export class DiskCache {
@@ -33,7 +33,8 @@ export class DiskCache {
     async function migrateDatabase(db: IDatabase): Promise<void> {
       const pkgRoot = path.join((await findUpPackageFilename(__dirname))!, '..')
       const migrationsPath = path.join(pkgRoot, 'migrations')
-      const migrations = await readMigrations(migrationsPath)
+      const migrationFilenames = await findMigrationFilenames(migrationsPath)
+      const migrations = await map(migrationFilenames, readMigrationFile)
       migrate(db, migrations)
     }
   }
@@ -145,7 +146,7 @@ export class DiskCache {
         FROM cache
     `), [this._db]).iterate()
 
-    return map(iter, ({ key }) => key)
+    return Iter.map(iter, ({ key }) => key)
   })
 
   private rescheduleClearingTask = withLazyStatic(() => {

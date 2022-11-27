@@ -67,7 +67,7 @@
     "extra-promise": "^4.3.1",
     "extra-timers": "^0.2.5",
     "iterable-operator": "^2.5.0",
-    "migrations-file": "^0.2.5",
+    "migration-files": "^0.4.0",
     "msgpackr": "^1.8.0"
   }
 }
