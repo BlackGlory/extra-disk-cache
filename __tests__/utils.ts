@@ -1,15 +1,5 @@
 import { DiskCache } from '@src/disk-cache'
 
-export let diskCache: DiskCache
-
-export async function initializeDiskCache() {
-  diskCache = await DiskCache.create()
-}
-
-export async function clearDiskCache() {
-  diskCache.close()
-}
-
 interface IRawItem {
   key: string
   value: Buffer
@@ -17,8 +7,8 @@ interface IRawItem {
   time_to_live: number | null
 }
 
-export function setRawItem(raw: IRawItem): void {
-  diskCache._db.prepare(`
+export function setRawItem(cache: DiskCache, raw: IRawItem): void {
+  cache._db.prepare(`
     INSERT INTO cache(
                   key
                 , value
@@ -29,16 +19,16 @@ export function setRawItem(raw: IRawItem): void {
   `).run(raw)
 }
 
-export function getRawItem(key: string): IRawItem {
-  return diskCache._db.prepare(`
+export function getRawItem(cache: DiskCache, key: string): IRawItem {
+  return cache._db.prepare(`
     SELECT *
       FROM cache
      WHERE key = $key
   `).get({ key })
 }
 
-export function hasRawItem(key: string): boolean {
-  const result: { item_exists: 1 | 0 } = diskCache._db.prepare(`
+export function hasRawItem(cache: DiskCache, key: string): boolean {
+  const result: { item_exists: 1 | 0 } = cache._db.prepare(`
     SELECT EXISTS(
              SELECT *
                FROM cache

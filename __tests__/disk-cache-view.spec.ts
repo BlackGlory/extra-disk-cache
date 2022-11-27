@@ -1,29 +1,21 @@
-import {
-  diskCache
-, initializeDiskCache
-, clearDiskCache
-, setRawItem
-, getRawItem
-, hasRawItem
-} from '@test/utils'
+import { setRawItem, getRawItem, hasRawItem } from '@test/utils'
 import { DiskCacheView } from '@src/disk-cache-view'
+import { DiskCache } from '@src/disk-cache'
 import { toArray } from '@blackglory/prelude'
 import '@blackglory/jest-matchers'
-
-beforeEach(initializeDiskCache)
-afterEach(clearDiskCache)
 
 describe('DiskCacheView', () => {
   describe('has', () => {
     describe('item exists', () => {
-      it('return true', () => {
-        setRawItem({
+      it('return true', async () => {
+        const cache = await DiskCache.create()
+        setRawItem(cache, {
           key: 'key'
         , value: Buffer.from('value')
         , updated_at: 0
         , time_to_live: 0
         })
-        const view = createView()
+        const view = createView(cache)
 
         const result = view.has('key')
 
@@ -32,8 +24,9 @@ describe('DiskCacheView', () => {
     })
 
     describe('item does not exist', () => {
-      it('return false', () => {
-        const view = createView()
+      it('return false', async () => {
+        const cache = await DiskCache.create()
+        const view = createView(cache)
 
         const result = view.has('key')
 
@@ -44,14 +37,15 @@ describe('DiskCacheView', () => {
 
   describe('get', () => {
     describe('item exists', () => {
-      it('return item', () => {
-        setRawItem({
+      it('return item', async () => {
+        const cache = await DiskCache.create()
+        setRawItem(cache, {
           key: 'key'
         , value: Buffer.from('value')
         , updated_at: 0
         , time_to_live: 0
         })
-        const view = createView()
+        const view = createView(cache)
 
         const result = view.get('key')
 
@@ -64,8 +58,9 @@ describe('DiskCacheView', () => {
     })
 
     describe('item does not exist', () => {
-      it('return item', () => {
-        const view = createView()
+      it('return item', async () => {
+        const cache = await DiskCache.create()
+        const view = createView(cache)
 
         const result = view.get('key')
 
@@ -75,20 +70,21 @@ describe('DiskCacheView', () => {
   })
 
   describe('set', () => {
-    test('item exists', () => {
-      setRawItem({
+    test('item exists', async () => {
+      const cache = await DiskCache.create()
+      setRawItem(cache, {
         key: 'key'
       , value: Buffer.from('value')
       , updated_at: 0
       , time_to_live: 0
       })
-      const view = createView()
+      const view = createView(cache)
       const newValue = 'new value'
 
       const result = view.set('key', newValue, 1800, 3600)
 
       expect(result).toBeUndefined()
-      expect(getRawItem('key')).toEqual({
+      expect(getRawItem(cache, 'key')).toEqual({
         key: 'key'
       , value: Buffer.from(newValue)
       , updated_at: 1800
@@ -96,13 +92,14 @@ describe('DiskCacheView', () => {
       })
     })
 
-    test('data does not exist', () => {
-      const view = createView()
+    test('data does not exist', async () => {
+      const cache = await DiskCache.create()
+      const view = createView(cache)
 
       const result = view.set('key', 'value', 1800, 3600)
 
       expect(result).toBeUndefined()
-      expect(getRawItem('key')).toEqual({
+      expect(getRawItem(cache, 'key')).toEqual({
         key: 'key'
       , value: Buffer.from('value')
       , updated_at: 1800
@@ -111,44 +108,47 @@ describe('DiskCacheView', () => {
     })
   })
 
-  test('delete', () => {
-    setRawItem({
+  test('delete', async () => {
+    const cache = await DiskCache.create()
+    setRawItem(cache, {
       key: 'key'
     , value: Buffer.from('value')
     , updated_at: 0
     , time_to_live: 0
     })
-    const view = createView()
+    const view = createView(cache)
 
     const result = view.delete('key')
 
     expect(result).toBeUndefined()
-    expect(hasRawItem('key')).toBeFalsy()
+    expect(hasRawItem(cache, 'key')).toBeFalsy()
   })
 
-  test('clear', () => {
-    setRawItem({
+  test('clear', async () => {
+    const cache = await DiskCache.create()
+    setRawItem(cache, {
       key: 'key'
     , value: Buffer.from('value')
     , updated_at: 0
     , time_to_live: 0
     })
-    const view = createView()
+    const view = createView(cache)
 
     const result = view.clear()
 
     expect(result).toBeUndefined()
-    expect(hasRawItem('key')).toBeFalsy()
+    expect(hasRawItem(cache, 'key')).toBeFalsy()
   })
 
-  test('keys', () => {
-    setRawItem({
+  test('keys', async () => {
+    const cache = await DiskCache.create()
+    setRawItem(cache, {
       key: 'key'
     , value: Buffer.from('value')
     , updated_at: 0
     , time_to_live: 0
     })
-    const view = createView()
+    const view = createView(cache)
 
     const iter = view.keys()
     const result = toArray(iter)
@@ -157,9 +157,9 @@ describe('DiskCacheView', () => {
   })
 })
 
-function createView(): DiskCacheView<string, string> {
+function createView(cache: DiskCache): DiskCacheView<string, string> {
   return new DiskCacheView<string, string>(
-    diskCache
+    cache
   , {
       toString: x => x
     , fromString: x => x

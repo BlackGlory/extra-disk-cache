@@ -1,48 +1,43 @@
-import {
-  diskCache
-, initializeDiskCache
-, clearDiskCache
-, setRawItem
-, getRawItem
-, hasRawItem
-} from '@test/utils'
+import { setRawItem, getRawItem, hasRawItem } from '@test/utils'
+import { DiskCache } from '@src/disk-cache'
 import { delay } from 'extra-promise'
 import { toArray } from '@blackglory/prelude'
 import '@blackglory/jest-matchers'
-
-beforeEach(initializeDiskCache)
-afterEach(clearDiskCache)
 
 const TIME_ERROR = 1
 
 describe('DiskCache', () => {
   it('will delete items automatically', async () => {
-    diskCache.set('key', Buffer.from('value'), Date.now(), 100)
+    const cache = await DiskCache.create()
+    cache.set('key', Buffer.from('value'), Date.now(), 100)
 
     await delay(201 + TIME_ERROR)
 
-    expect(diskCache.has('key')).toBeFalsy()
+    expect(hasRawItem(cache, 'key')).toBeFalsy()
   })
 
   describe('has', () => {
     describe('item exists', () => {
-      it('return true', () => {
-        setRawItem({
+      it('return true', async () => {
+        const cache = await DiskCache.create()
+        setRawItem(cache, {
           key: 'key'
         , value: Buffer.from('value')
         , updated_at: 0
         , time_to_live: 0
         })
 
-        const result = diskCache.has('key')
+        const result = cache.has('key')
 
         expect(result).toBe(true)
       })
     })
 
     describe('item does not exist', () => {
-      it('return false', () => {
-        const result = diskCache.has('key')
+      it('return false', async () => {
+        const cache = await DiskCache.create()
+
+        const result = cache.has('key')
 
         expect(result).toBe(false)
       })
@@ -51,16 +46,17 @@ describe('DiskCache', () => {
 
   describe('get', () => {
     describe('item exists', () => {
-      it('return item', () => {
+      it('return item', async () => {
+        const cache = await DiskCache.create()
         const value = Buffer.from('value')
-        setRawItem({
+        setRawItem(cache, {
           key: 'key'
         , value
         , updated_at: 0
         , time_to_live: 0
         })
 
-        const result = diskCache.get('key')
+        const result = cache.get('key')
 
         expect(result).toStrictEqual({
           value
@@ -71,8 +67,10 @@ describe('DiskCache', () => {
     })
 
     describe('item does not exist', () => {
-      it('return item', () => {
-        const result = diskCache.get('key')
+      it('return item', async () => {
+        const cache = await DiskCache.create()
+
+        const result = cache.get('key')
 
         expect(result).toBeUndefined()
       })
@@ -80,9 +78,10 @@ describe('DiskCache', () => {
   })
 
   describe('set', () => {
-    test('item exists', () => {
+    test('item exists', async () => {
+      const cache = await DiskCache.create()
       const value = Buffer.from('value')
-      setRawItem({
+      setRawItem(cache, {
         key: 'key'
       , value
       , updated_at: 0
@@ -90,10 +89,10 @@ describe('DiskCache', () => {
       })
       const newValue = Buffer.from('new value')
 
-      const result = diskCache.set('key', newValue, 1800, 3600)
+      const result = cache.set('key', newValue, 1800, 3600)
 
       expect(result).toBeUndefined()
-      expect(getRawItem('key')).toEqual({
+      expect(getRawItem(cache, 'key')).toEqual({
         key: 'key'
       , value: newValue
       , updated_at: 1800
@@ -101,12 +100,13 @@ describe('DiskCache', () => {
       })
     })
 
-    test('data does not exist', () => {
+    test('data does not exist', async () => {
+      const cache = await DiskCache.create()
       const value = Buffer.from('value')
-      const result = diskCache.set('key', value, 1800, 3600)
+      const result = cache.set('key', value, 1800, 3600)
 
       expect(result).toBeUndefined()
-      expect(getRawItem('key')).toEqual({
+      expect(getRawItem(cache, 'key')).toEqual({
         key: 'key'
       , value
       , updated_at: 1800
@@ -115,74 +115,78 @@ describe('DiskCache', () => {
     })
   })
 
-  test('delete', () => {
+  test('delete', async () => {
+    const cache = await DiskCache.create()
     const value = Buffer.from('value')
-    setRawItem({
+    setRawItem(cache, {
       key: 'key'
     , value
     , updated_at: 0
     , time_to_live: 0
     })
 
-    const result = diskCache.delete('key')
+    const result = cache.delete('key')
 
     expect(result).toBeUndefined()
-    expect(hasRawItem('key')).toBeFalsy()
+    expect(hasRawItem(cache, 'key')).toBeFalsy()
   })
 
-  test('clear', () => {
-    setRawItem({
+  test('clear', async () => {
+    const cache = await DiskCache.create()
+    setRawItem(cache, {
       key: 'key'
     , value: Buffer.from('value')
     , updated_at: 0
     , time_to_live: 0
     })
 
-    const result = diskCache.clear()
+    const result = cache.clear()
 
     expect(result).toBeUndefined()
-    expect(hasRawItem('key')).toBeFalsy()
+    expect(hasRawItem(cache, 'key')).toBeFalsy()
   })
 
-  test('keys', () => {
-    setRawItem({
+  test('keys', async () => {
+    const cache = await DiskCache.create()
+    setRawItem(cache, {
       key: 'key'
     , value: Buffer.from('value')
     , updated_at: 0
     , time_to_live: 0
     })
 
-    const iter = diskCache.keys()
+    const iter = cache.keys()
     const result = toArray(iter)
 
     expect(result).toStrictEqual(['key'])
   })
 
-  test('clearExpiredItems', () => {
+  test('clearExpiredItems', async () => {
+    const cache = await DiskCache.create()
     const value = Buffer.from('value')
-    setRawItem({
+    setRawItem(cache, {
       key: '#1'
     , value
     , updated_at: 0
     , time_to_live: null
     })
-    setRawItem({
+    setRawItem(cache, {
       key: '#2'
     , value
     , updated_at: 0
     , time_to_live: 100
     })
-    setRawItem({
+    setRawItem(cache, {
       key: '#3'
     , value
     , updated_at: 0
     , time_to_live: 200
     })
 
-    diskCache._clearExpiredItems(150)
+    cache._clearExpiredItems(150)
     
-    expect(hasRawItem('#1')).toBeTruthy()
-    expect(hasRawItem('#2')).toBeFalsy()
-    expect(hasRawItem('#3')).toBeTruthy()
+    expect(hasRawItem(cache, '#1')).toBeTruthy()
+    expect(hasRawItem(cache, '#2')).toBeFalsy()
+    expect(hasRawItem(cache, '#3')).toBeTruthy()
   })
 })
