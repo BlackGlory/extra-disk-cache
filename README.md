@@ -93,11 +93,16 @@ class DiskCacheView<K, V> {
 #### JSONValueConverter
 ```ts
 class JSONValueConverter<T> implements IValueConverter<T> {
-  constructor(private encoding: BufferEncoding = 'utf-8')
+  constructor(encoding: BufferEncoding = 'utf-8')
 }
+```
+
+#### MessagePackValueConverter
+```ts
+class MessagePackValueConverter<T> implements IValueConverter<T>
 ```
 
 #### PassthroughKeyConverter
 ```ts
-class PassthroughKeyConverter implements IKeyConverter<string> 
+class PassthroughKeyConverter implements IKeyConverter<string>
 ```
