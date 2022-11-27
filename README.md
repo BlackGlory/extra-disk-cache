@@ -90,6 +90,18 @@ class DiskCacheView<K, V> {
 }
 ```
 
+#### PassthroughKeyConverter
+```ts
+class PassthroughKeyConverter implements IKeyConverter<string>
+```
+
+#### IndexKeyConverter
+```ts
+class IndexKeyConverter implements IKeyConverter<number> {
+  constructor(radix: number = 10)
+}
+```
+
 #### JSONValueConverter
 ```ts
 class JSONValueConverter<T> implements IValueConverter<T> {
@@ -102,14 +114,18 @@ class JSONValueConverter<T> implements IValueConverter<T> {
 class MessagePackValueConverter<T> implements IValueConverter<T>
 ```
 
-#### PassthroughKeyConverter
+#### LZ4ValueConverter
 ```ts
-class PassthroughKeyConverter implements IKeyConverter<string>
-```
-
-#### IndexKeyConverter
-```ts
-class IndexKeyConverter implements IKeyConverter<number> {
-  constructor(radix: number = 10)
+class LZ4ValueConverter<T> implements IValueConverter<T> {
+  constructor(valueConverter: IValueConverter<T>)
 }
 ```
+
+#### ZstandardValueConverter
+```ts
+class ZstandardValueConverter<T> implements IValueConverter<T> {
+  static create<T>(
+    valueConverter: IValueConverter<T>
+  , level: number
+  ): Promise<ZstandardValueConverter<T>>
+}
