@@ -1,5 +1,5 @@
 import * as lz4 from 'lz4-wasm-nodejs'
-import { IValueConverter } from './disk-cache-view'
+import { IValueConverter } from '@src/disk-cache-view'
 
 export class LZ4ValueConverter<T> implements IValueConverter<T> {
   constructor(

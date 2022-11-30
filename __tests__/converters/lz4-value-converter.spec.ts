@@ -1,8 +1,9 @@
-import { MessagePackValueConverter } from '@src/message-pack-value-converter'
+import { LZ4ValueConverter } from '@converters/lz4-value-converter'
+import { JSONValueConverter } from '@converters/json-value-converter'
 
-describe('MessagePackValueConverter', () => {
+describe('LZ4ValueConvertter', () => {
   test('toBuffer & fromBuffer', () => {
-    const converter = new MessagePackValueConverter()
+    const converter = new LZ4ValueConverter(new JSONValueConverter())
 
     const buffer = converter.toBuffer(['foo', 'bar'])
     const result = converter.fromBuffer(buffer)
@@ -11,36 +12,54 @@ describe('MessagePackValueConverter', () => {
   })
 
   test('toBuffer', () => {
-    const converter = new MessagePackValueConverter()
+    const converter = new LZ4ValueConverter(new JSONValueConverter())
 
     const result = converter.toBuffer(['foo', 'bar'])
 
     expect(result).toStrictEqual(Buffer.from([
-      146
-    , 163
+      13
+    , 0
+    , 0
+    , 0
+    , 208
+    , 91
+    , 34
     , 102
     , 111
     , 111
-    , 163
+    , 34
+    , 44
+    , 34
     , 98
     , 97
     , 114
+    , 34
+    , 93
     ]))
   })
 
   test('fromBuffer', () => {
-    const converter = new MessagePackValueConverter()
+    const converter = new LZ4ValueConverter(new JSONValueConverter())
 
     const result = converter.fromBuffer(Buffer.from([
-      146
-    , 163
+      13
+    , 0
+    , 0
+    , 0
+    , 208
+    , 91
+    , 34
     , 102
     , 111
     , 111
-    , 163
+    , 34
+    , 44
+    , 34
     , 98
     , 97
     , 114
+    , 34
+    , 93
     ]))
 
     expect(result).toStrictEqual(['foo', 'bar'])

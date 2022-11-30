@@ -1,4 +1,4 @@
-import { IKeyConverter } from './disk-cache-view'
+import { IKeyConverter } from '@src/disk-cache-view'
 
 export class PassthroughKeyConverter implements IKeyConverter<string> {
   toString(value: string): string {

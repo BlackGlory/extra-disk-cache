@@ -1,4 +1,4 @@
-import { IKeyConverter } from './disk-cache-view'
+import { IKeyConverter } from '@src/disk-cache-view'
 
 export class IndexKeyConverter implements IKeyConverter<number> {
   constructor(private radix: number = 10) {}

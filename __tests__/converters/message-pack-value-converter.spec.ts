@@ -1,8 +1,8 @@
-import { JSONValueConverter } from '@src/json-value-converter'
+import { MessagePackValueConverter } from '@converters/message-pack-value-converter'
 
-describe('JSONValueConverter', () => {
+describe('MessagePackValueConverter', () => {
   test('toBuffer & fromBuffer', () => {
-    const converter = new JSONValueConverter('utf-8')
+    const converter = new MessagePackValueConverter()
 
     const buffer = converter.toBuffer(['foo', 'bar'])
     const result = converter.fromBuffer(buffer)
@@ -11,44 +11,36 @@ describe('JSONValueConverter', () => {
   })
 
   test('toBuffer', () => {
-    const converter = new JSONValueConverter('utf-8')
+    const converter = new MessagePackValueConverter()
 
     const result = converter.toBuffer(['foo', 'bar'])
 
     expect(result).toStrictEqual(Buffer.from([
-      91
-    , 34
+      146
+    , 163
     , 102
     , 111
     , 111
-    , 34
-    , 44
-    , 34
+    , 163
     , 98
     , 97
     , 114
-    , 34
-    , 93
     ]))
   })
 
   test('fromBuffer', () => {
-    const converter = new JSONValueConverter('utf-8')
+    const converter = new MessagePackValueConverter()
 
     const result = converter.fromBuffer(Buffer.from([
-      91
-    , 34
+      146
+    , 163
     , 102
     , 111
     , 111
-    , 34
-    , 44
-    , 34
+    , 163
     , 98
     , 97
     , 114
-    , 34
-    , 93
     ]))
 
     expect(result).toStrictEqual(['foo', 'bar'])

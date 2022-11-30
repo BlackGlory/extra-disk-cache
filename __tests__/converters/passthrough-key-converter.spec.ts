@@ -1,4 +1,4 @@
-import { PassthroughKeyConverter } from '@src/passthrough-key-converter'
+import { PassthroughKeyConverter } from '@converters/passthrough-key-converter'
 
 describe('PassthroughKeyConverter', () => {
   test('toString & fromString', () => {

@@ -1,5 +1,5 @@
 import * as zstd from '@bokuweb/zstd-wasm'
-import { IValueConverter } from './disk-cache-view'
+import { IValueConverter } from '@src/disk-cache-view'
 
 export class ZstandardValueConverter<T> implements IValueConverter<T> {
   private constructor(

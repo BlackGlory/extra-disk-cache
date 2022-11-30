@@ -1,5 +1,5 @@
 import * as msgpack from 'msgpack-lite'
-import { IValueConverter } from './disk-cache-view'
+import { IValueConverter } from '@src/disk-cache-view'
 
 /**
  * @deprecated

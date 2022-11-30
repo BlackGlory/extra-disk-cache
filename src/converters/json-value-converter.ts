@@ -1,4 +1,4 @@
-import { IValueConverter } from './disk-cache-view'
+import { IValueConverter } from '@src/disk-cache-view'
 
 export class JSONValueConverter<T> implements IValueConverter<T> {
   constructor(private encoding: BufferEncoding = 'utf-8') {}
