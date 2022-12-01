@@ -29,7 +29,7 @@
     "build:es2015:compile": "tsc --project tsconfig.build.json --target es2015 --outDir lib/es2015",
     "build:es2018": "run-s build:es2018:*",
     "build:es2018:compile": "tsc --project tsconfig.build.json --target es2018 --outDir lib/es2018",
-    "bench": "node --require tsconfig-paths/register --require ts-node/register benches/index.ts",
+    "bench": "ts-node --require tsconfig-paths/register benches/index.ts",
     "release": "standard-version"
   },
   "husky": {
