@@ -1,7 +1,7 @@
 import * as lz4 from 'lz4-wasm-nodejs'
-import { IValueConverter } from '@src/disk-cache-view'
+import { IValueConverter, IValueAsyncConverter } from '@src/types'
 
-export class LZ4ValueConverter<T> implements IValueConverter<T> {
+export class LZ4ValueConverter<T> implements IValueConverter<T>, IValueAsyncConverter<T> {
   constructor(
     private valueConverter: IValueConverter<T>
   ) {}

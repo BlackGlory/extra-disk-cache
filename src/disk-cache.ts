@@ -146,8 +146,8 @@ export class DiskCache {
     this.cancelScheduledTasks?.()
   })
 
-  keys = withLazyStatic((): Iterable<string> => {
-    const iter: Iterable<{ key: string }> = lazyStatic(() => this._db.prepare(`
+  keys = withLazyStatic((): IterableIterator<string> => {
+    const iter: IterableIterator<{ key: string }> = lazyStatic(() => this._db.prepare(`
       SELECT key
         FROM cache
     `), [this._db]).iterate()

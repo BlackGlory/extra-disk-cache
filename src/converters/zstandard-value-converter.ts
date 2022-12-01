@@ -1,7 +1,7 @@
 import * as zstd from '@bokuweb/zstd-wasm'
-import { IValueConverter } from '@src/disk-cache-view'
+import { IValueConverter, IValueAsyncConverter } from '@src/types'
 
-export class ZstandardValueConverter<T> implements IValueConverter<T> {
+export class ZstandardValueConverter<T> implements IValueConverter<T>, IValueAsyncConverter<T> {
   private constructor(
     private valueConverter: IValueConverter<T>
   , private level: number

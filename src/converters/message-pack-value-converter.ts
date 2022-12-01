@@ -1,5 +1,5 @@
 import * as msgpack from 'msgpack-lite'
-import { IValueConverter } from '@src/disk-cache-view'
+import { IValueConverter, IValueAsyncConverter } from '@src/types'
 
 /**
  * @deprecated
@@ -7,7 +7,7 @@ import { IValueConverter } from '@src/disk-cache-view'
  * Currently using the package `msgpack-lite` to instead of the incorrect `msgpackr`,
  * which is much slower than JSON.
  */
-export class MessagePackValueConverter<T> implements IValueConverter<T> {
+export class MessagePackValueConverter<T> implements IValueConverter<T>, IValueAsyncConverter<T> {
   fromBuffer(buffer: Buffer): T {
     return msgpack.decode(buffer)
   }

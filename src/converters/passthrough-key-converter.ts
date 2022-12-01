@@ -1,6 +1,6 @@
-import { IKeyConverter } from '@src/disk-cache-view'
+import { IKeyConverter, IKeyAsyncConverter } from '@src/types'
 
-export class PassthroughKeyConverter implements IKeyConverter<string> {
+export class PassthroughKeyConverter implements IKeyConverter<string>, IKeyAsyncConverter<string> {
   toString(value: string): string {
     return value
   }

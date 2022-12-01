@@ -1,15 +1,6 @@
-import { DiskCache } from './disk-cache'
+import { DiskCache } from '@src/disk-cache'
 import { map } from 'iterable-operator'
-
-export interface IKeyConverter<T> {
-  toString: (value: T) => string
-  fromString: (value: string) => T
-}
-
-export interface IValueConverter<T> {
-  toBuffer: (value: T) => Buffer
-  fromBuffer: (value: Buffer) => T
-}
+import { IKeyConverter, IValueConverter } from '@src/types'
 
 export class DiskCacheView<K, V> {
   constructor(
@@ -67,7 +58,7 @@ export class DiskCacheView<K, V> {
     this.cache.clear()
   }
 
-  keys(): Iterable<K> {
+  keys(): IterableIterator<K> {
     return map(
       this.cache.keys()
     , key => this.keyConverter.fromString(key)
