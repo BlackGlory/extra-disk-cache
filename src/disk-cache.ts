@@ -21,6 +21,8 @@ export class DiskCache {
 
       await migrateDatabase(db)
 
+      db.unsafeMode(true)
+
       return db
     })
 

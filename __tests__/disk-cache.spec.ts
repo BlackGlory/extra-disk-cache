@@ -146,19 +146,64 @@ describe('DiskCache', () => {
     expect(hasRawItem(cache, 'key')).toBeFalsy()
   })
 
-  test('keys', async () => {
-    const cache = await DiskCache.create()
-    setRawItem(cache, {
-      key: 'key'
-    , value: Buffer.from('value')
-    , updated_at: 0
-    , time_to_live: 0
+  describe('keys', () => {
+    test('normal', async () => {
+      const cache = await DiskCache.create()
+      setRawItem(cache, {
+        key: 'key'
+      , value: Buffer.from('value')
+      , updated_at: 0
+      , time_to_live: 0
+      })
+
+      const iter = cache.keys()
+      const result = toArray(iter)
+
+      expect(result).toStrictEqual(['key'])
     })
 
-    const iter = cache.keys()
-    const result = toArray(iter)
+    test('edge: read while getting keys', async () => {
+      const cache = await DiskCache.create()
+      setRawItem(cache, {
+        key: 'key'
+      , value: Buffer.from('value')
+      , updated_at: 0
+      , time_to_live: 0
+      })
 
-    expect(result).toStrictEqual(['key'])
+      const iter = cache.keys()
+      const key = cache.get('key')
+      const result = iter.next()
+
+      expect(key).toStrictEqual({
+        value: Buffer.from('value')
+      , updatedAt: 0
+      , timeToLive: 0
+      })
+      expect(result).toStrictEqual({
+        done: false
+      , value: 'key'
+      })
+    })
+
+    test('edge: write while getting keys', async () => {
+      const cache = await DiskCache.create()
+      setRawItem(cache, {
+        key: 'key'
+      , value: Buffer.from('value')
+      , updated_at: 0
+      , time_to_live: 0
+      })
+
+      const iter = cache.keys()
+      cache.set('key', Buffer.from('new-value'))
+      const result = iter.next()
+
+      expect(result).toStrictEqual({
+        done: false
+      , value: 'key'
+      })
+    })
   })
 
   describe('close', () => {
