@@ -12,7 +12,7 @@ yarn add extra-disk-cache
 ```ts
 import { DiskCache } from 'extra-disk-cache'
 
-const cache = new DiskCache('/tmp/cache')
+const cache = await DiskCache.create('/tmp/cache')
 cache.set('key', Buffer.from('value'), Date.now(), 3600)
 const { value } = cache.get('key')
 ```
