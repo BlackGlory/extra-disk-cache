@@ -16,3 +16,19 @@ export class LZ4ValueConverter<T> implements IValueConverter<T>, IValueAsyncConv
     return this.valueConverter.fromBuffer(buffer)
   }
 }
+
+export class LZ4ValueAsyncConverter<T> implements IValueAsyncConverter<T> {
+  constructor(
+    private valueConverter: IValueConverter<T> | IValueAsyncConverter<T>
+  ) {}
+
+  async toBuffer(value: T): Promise<Buffer> {
+    const buffer = await this.valueConverter.toBuffer(value)
+    return Buffer.from(lz4.compress(buffer))
+  }
+
+  async fromBuffer(value: Buffer): Promise<T> {
+    const buffer = Buffer.from(lz4.decompress(value))
+    return await this.valueConverter.fromBuffer(buffer)
+  }
+}
