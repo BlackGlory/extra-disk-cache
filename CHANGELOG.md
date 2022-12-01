@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.8.20](https://github.com/BlackGlory/extra-disk-cache/compare/v0.8.19...v0.8.20) (2022-12-01)
+
+
+### Features
+
+* add `LZ4ValueAsyncConverter`, `ZstandardValueAsyncConverter` ([c05554f](https://github.com/BlackGlory/extra-disk-cache/commit/c05554fcb5039cd40e9a532bcbe84526c8683573))
+
 ### [0.8.19](https://github.com/BlackGlory/extra-disk-cache/compare/v0.8.18...v0.8.19) (2022-12-01)
 
 
