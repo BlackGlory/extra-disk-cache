@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.8.22](https://github.com/BlackGlory/extra-disk-cache/compare/v0.8.21...v0.8.22) (2022-12-05)
+
+
+### Features
+
+* add `PrefixKeyConverter`, `PrefixKeyAsyncConverter` ([60c1d98](https://github.com/BlackGlory/extra-disk-cache/commit/60c1d98946c765e6acd5c5ee16a2c076ae18b823))
+
 ### [0.8.21](https://github.com/BlackGlory/extra-disk-cache/compare/v0.8.20...v0.8.21) (2022-12-01)
 
 
