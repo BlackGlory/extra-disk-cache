@@ -52,7 +52,7 @@ class DiskCache {
 ```ts
 interface IKeyConverter<T> {
   toString: (value: T) => string
-  fromString: (value: string) => T
+  fromString: (value: string) => T | undefined
 }
 
 interface IValueConverter<T> {
@@ -94,7 +94,7 @@ class DiskCacheView<K, V> {
 ```ts
 interface IKeyAsyncConverter<T> {
   toString: (value: T) => Awaitable<string>
-  fromString: (value: string) => Awaitable<T>
+  fromString: (value: string) => Awaitable<T | undefined>
 }
 
 interface IValueAsyncConverter<T> {
@@ -216,7 +216,7 @@ export class PrefixKeyConverter<T> implements IKeyConverter<T>, IKeyAsyncConvert
   )
 
   toString(value: T): string
-  fromString(value: string): T
+  fromString(value: string): T | undefined
 }
 ```
 
@@ -229,6 +229,6 @@ class PrefixKeyAsyncConverter<T> implements IKeyAsyncConverter<T> {
   )
 
   toString(value: T): Promise<string>
-  fromString(value: string): Promise<T>
+  fromString(value: string): Promise<T | undefined>
 }
 ```

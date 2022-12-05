@@ -4,6 +4,7 @@ import { delay } from 'extra-promise'
 import { DiskCache } from '@src/disk-cache'
 import { toArrayAsync } from '@blackglory/prelude'
 import '@blackglory/jest-matchers'
+import { PassthroughKeyConverter, PrefixKeyAsyncConverter } from '@src/converters'
 
 describe('DiskCacheAsyncView', () => {
   describe('has', () => {
@@ -141,22 +142,60 @@ describe('DiskCacheAsyncView', () => {
     expect(hasRawItem(cache, 'key')).toBeFalsy()
   })
 
-  test('keys', async () => {
-    const cache = await DiskCache.create()
-    setRawItem(cache, {
-      key: 'key'
-    , value: Buffer.from('value')
-    , updated_at: 0
-    , time_to_live: 0
+  describe('keys', () => {
+    test('non-undefined', async () => {
+      const cache = await DiskCache.create()
+      setRawItem(cache, {
+        key: 'key'
+      , value: Buffer.from('value')
+      , updated_at: 0
+      , time_to_live: 0
+      })
+      const view = createView(cache)
+
+      const iter = view.keys()
+      const result = await toArrayAsync(iter)
+
+      expect(result).toStrictEqual(['key'])
     })
-    const view = createView(cache)
 
-    const iter = view.keys()
-    const result = await toArrayAsync(iter)
+    test('undefined', async () => {
+      const cache = await DiskCache.create()
+      setRawItem(cache, {
+        key: 'non-prefix-key'
+      , value: Buffer.from('value')
+      , updated_at: 0
+      , time_to_live: 0
+      })
+      setRawItem(cache, {
+        key: 'prefix-key'
+      , value: Buffer.from('value')
+      , updated_at: 0
+      , time_to_live: 0
+      })
+      const view = createViewWithPrefix(cache, 'prefix-')
 
-    expect(result).toStrictEqual(['key'])
+      const iter = view.keys()
+      const result = await toArrayAsync(iter)
+
+      expect(result).toStrictEqual(['key'])
+    })
   })
 })
+
+function createViewWithPrefix(cache: DiskCache, prefix: string): DiskCacheAsyncView<string, string> {
+  return new DiskCacheAsyncView(
+    cache
+  , new PrefixKeyAsyncConverter(
+      new PassthroughKeyConverter()
+    , prefix
+    )
+  , { 
+      fromBuffer: x => x.toString()
+    , toBuffer: x => Buffer.from(x)
+    }
+  )
+}
 
 function createView(cache: DiskCache): DiskCacheAsyncView<string, string> {
   return new DiskCacheAsyncView<string, string>(

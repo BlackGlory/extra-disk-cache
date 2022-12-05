@@ -1,6 +1,7 @@
 import { DiskCache } from '@src/disk-cache'
-import { mapAsync } from 'iterable-operator'
 import { IKeyAsyncConverter, IValueAsyncConverter } from '@src/types'
+import { mapAsync, filterAsync } from 'iterable-operator'
+import { pipe, isntUndefined } from 'extra-utils'
 
 export class DiskCacheAsyncView<K, V> {
   constructor(
@@ -59,9 +60,10 @@ export class DiskCacheAsyncView<K, V> {
   }
 
   keys(): AsyncIterableIterator<K> {
-    return mapAsync(
+    return pipe(
       this.cache.keys()
-    , key => this.keyConverter.fromString(key)
+    , iter => mapAsync(iter, key => this.keyConverter.fromString(key))
+    , iter => filterAsync(iter, isntUndefined)
     )
   }
 }

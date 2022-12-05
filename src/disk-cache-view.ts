@@ -1,6 +1,8 @@
 import { DiskCache } from '@src/disk-cache'
-import { map } from 'iterable-operator'
 import { IKeyConverter, IValueConverter } from '@src/types'
+import { map, filter } from 'iterable-operator'
+import { isntUndefined } from '@blackglory/prelude'
+import { pipe } from 'extra-utils'
 
 export class DiskCacheView<K, V> {
   constructor(
@@ -59,9 +61,10 @@ export class DiskCacheView<K, V> {
   }
 
   keys(): IterableIterator<K> {
-    return map(
+    return pipe(
       this.cache.keys()
-    , key => this.keyConverter.fromString(key)
+    , iter => map(iter, key => this.keyConverter.fromString(key))
+    , iter => filter(iter, isntUndefined)
     )
   }
 }
