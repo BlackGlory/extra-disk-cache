@@ -1,0 +1,28 @@
+import { JSONKeyConverter } from '@converters/json-key-converter'
+
+describe('JSONKeyConverter', () => {
+  test('toString & fromString', () => {
+    const converter = new JSONKeyConverter()
+
+    const str = converter.toString(['foo', 'bar'])
+    const result = converter.fromString(str)
+
+    expect(result).toStrictEqual(['foo', 'bar'])
+  })
+
+  test('toString', () => {
+    const converter = new JSONKeyConverter()
+
+    const result = converter.toString(['foo', 'bar'])
+
+    expect(result).toStrictEqual(JSON.stringify(['foo', 'bar']))
+  })
+
+  test('fromString', () => {
+    const converter = new JSONKeyConverter()
+
+    const result = converter.fromString(JSON.stringify(['foo', 'bar']))
+
+    expect(result).toStrictEqual(['foo', 'bar'])
+  })
+})
