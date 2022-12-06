@@ -7,66 +7,58 @@ import '@blackglory/jest-matchers'
 
 describe('DiskCacheView', () => {
   describe('has', () => {
-    describe('item exists', () => {
-      it('return true', async () => {
-        const cache = await DiskCache.create()
-        setRawItem(cache, {
-          key: 'key'
-        , value: Buffer.from('value')
-        , updated_at: 0
-        , time_to_live: 0
-        })
-        const view = createView(cache)
-
-        const result = view.has('key')
-
-        expect(result).toBe(true)
+    test('item exists', async () => {
+      const cache = await DiskCache.create()
+      setRawItem(cache, {
+        key: 'key'
+      , value: Buffer.from('value')
+      , updated_at: 0
+      , time_to_live: 0
       })
+      const view = createView(cache)
+
+      const result = view.has('key')
+
+      expect(result).toBe(true)
     })
 
-    describe('item does not exist', () => {
-      it('return false', async () => {
-        const cache = await DiskCache.create()
-        const view = createView(cache)
+    test('item does not exist', async () => {
+      const cache = await DiskCache.create()
+      const view = createView(cache)
 
-        const result = view.has('key')
+      const result = view.has('key')
 
-        expect(result).toBe(false)
-      })
+      expect(result).toBe(false)
     })
   })
 
   describe('get', () => {
-    describe('item exists', () => {
-      it('return item', async () => {
-        const cache = await DiskCache.create()
-        setRawItem(cache, {
-          key: 'key'
-        , value: Buffer.from('value')
-        , updated_at: 0
-        , time_to_live: 0
-        })
-        const view = createView(cache)
+    test('item exists', async () => {
+      const cache = await DiskCache.create()
+      setRawItem(cache, {
+        key: 'key'
+      , value: Buffer.from('value')
+      , updated_at: 0
+      , time_to_live: 0
+      })
+      const view = createView(cache)
 
-        const result = view.get('key')
+      const result = view.get('key')
 
-        expect(result).toStrictEqual({
-          value: 'value'
-        , updatedAt: 0
-        , timeToLive: 0
-        })
+      expect(result).toStrictEqual({
+        value: 'value'
+      , updatedAt: 0
+      , timeToLive: 0
       })
     })
 
-    describe('item does not exist', () => {
-      it('return item', async () => {
-        const cache = await DiskCache.create()
-        const view = createView(cache)
+    test('item does not exist', async () => {
+      const cache = await DiskCache.create()
+      const view = createView(cache)
 
-        const result = view.get('key')
+      const result = view.get('key')
 
-        expect(result).toBeUndefined()
-      })
+      expect(result).toBeUndefined()
     })
   })
 

@@ -7,7 +7,7 @@ import '@blackglory/jest-matchers'
 const TIME_ERROR = 1
 
 describe('DiskCache', () => {
-  it('will delete items automatically', async () => {
+  test('delete items automatically', async () => {
     const cache = await DiskCache.create()
     cache.set('key', Buffer.from('value'), Date.now(), 100)
 
@@ -17,63 +17,55 @@ describe('DiskCache', () => {
   })
 
   describe('has', () => {
-    describe('item exists', () => {
-      it('return true', async () => {
-        const cache = await DiskCache.create()
-        setRawItem(cache, {
-          key: 'key'
-        , value: Buffer.from('value')
-        , updated_at: 0
-        , time_to_live: 0
-        })
-
-        const result = cache.has('key')
-
-        expect(result).toBe(true)
+    test('item exists', async () => {
+      const cache = await DiskCache.create()
+      setRawItem(cache, {
+        key: 'key'
+      , value: Buffer.from('value')
+      , updated_at: 0
+      , time_to_live: 0
       })
+
+      const result = cache.has('key')
+
+      expect(result).toBe(true)
     })
 
-    describe('item does not exist', () => {
-      it('return false', async () => {
-        const cache = await DiskCache.create()
+    test('item does not exist', async () => {
+      const cache = await DiskCache.create()
 
-        const result = cache.has('key')
+      const result = cache.has('key')
 
-        expect(result).toBe(false)
-      })
+      expect(result).toBe(false)
     })
   })
 
   describe('get', () => {
-    describe('item exists', () => {
-      it('return item', async () => {
-        const cache = await DiskCache.create()
-        const value = Buffer.from('value')
-        setRawItem(cache, {
-          key: 'key'
-        , value
-        , updated_at: 0
-        , time_to_live: 0
-        })
+    test('item exists', async () => {
+      const cache = await DiskCache.create()
+      const value = Buffer.from('value')
+      setRawItem(cache, {
+        key: 'key'
+      , value
+      , updated_at: 0
+      , time_to_live: 0
+      })
 
-        const result = cache.get('key')
+      const result = cache.get('key')
 
-        expect(result).toStrictEqual({
-          value
-        , updatedAt: 0
-        , timeToLive: 0
-        })
+      expect(result).toStrictEqual({
+        value
+      , updatedAt: 0
+      , timeToLive: 0
       })
     })
 
-    describe('item does not exist', () => {
-      it('return item', async () => {
-        const cache = await DiskCache.create()
+    test('item does not exist', async () => {
+      const cache = await DiskCache.create()
 
-        const result = cache.get('key')
+      const result = cache.get('key')
 
-        expect(result).toBeUndefined()
-      })
+      expect(result).toBeUndefined()
     })
   })
 
