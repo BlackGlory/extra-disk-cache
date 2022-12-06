@@ -126,7 +126,7 @@ go(async () => {
     , new CacheIndexKeyConverter()
     , new CacheJSONValueConverter()
     )
-    for (let i = 1000; i--;) {
+    for (let i = 100; i--;) {
       view.set(i, i)
     }
 
@@ -151,7 +151,7 @@ go(async () => {
     , new StoreIndexKeyConverter()
     , new StoreJSONValueConverter()
     )
-    for (let i = 1000; i--;) {
+    for (let i = 100; i--;) {
       view.set(i, i)
     }
 
