@@ -169,6 +169,20 @@ export class DiskCache {
   })
 
   private scheduleClearingTask(): () => void {
+    const nearestTimestamp = this.getNearestTimestamp()
+
+    if (isntUndefined(nearestTimestamp)) {
+      const cancel = setSchedule(nearestTimestamp, () => {
+        this._clearExpiredItems(Date.now())
+        this.macrotask.queue(this.rescheduleClearingTask)
+      })
+      return cancel
+    }
+
+    return pass
+  }
+
+  private getNearestTimestamp(): number | undefined {
     const row: { timestamp: number } | undefined = lazyStatic(() => this._db.prepare(`
       SELECT updated_at + time_to_live AS timestamp
         FROM cache
@@ -177,15 +191,7 @@ export class DiskCache {
        LIMIT 1
     `), [this._db]).get()
 
-    if (isntUndefined(row)) {
-      const cancel = setSchedule(row.timestamp, () => {
-        this._clearExpiredItems(Date.now())
-        this.macrotask.queue(this.rescheduleClearingTask)
-      })
-      return cancel
-    }
-
-    return pass
+    return row?.timestamp
   }
 
   /**
