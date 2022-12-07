@@ -12,13 +12,13 @@ import {
 , IndexKeyConverter as StoreIndexKeyConverter
 , JSONValueConverter as StoreJSONValueConverter
 } from 'extra-disk-store'
-import { createTempFile, remove } from 'extra-filesystem'
+import { createTempName, remove } from 'extra-filesystem'
 
 const benchmark = new Benchmark('I/O performance')
 
 go(async () => {
   benchmark.addCase('ExtraDiskCache (write)', async () => {
-    const filename = await createTempFile()
+    const filename = await createTempName()
     const cache = await DiskCache.create(filename)
     const view = new DiskCacheView(
       cache
@@ -43,8 +43,7 @@ go(async () => {
   })
 
   benchmark.addCase('ExtraDiskStore (write)', async () => {
-    const filename = await createTempFile()
-    const store = await DiskStore.create(filename)
+    const store = new DiskStore()
     const view = new DiskStoreView(
       store
     , new StoreIndexKeyConverter()
@@ -55,20 +54,21 @@ go(async () => {
       beforeEach() {
         store.clear()
       }
-    , iterate() {
+    , async iterate() {
+        const promises: Array<Promise<unknown>> = []
         for (let i = 100; i--;) {
-          view.set(i, i)
+          promises.push(view.set(i, i))
         }
+        await Promise.all(promises)
       }
     , async afterAll() {
-        store.close()
-        await remove(filename)
+        await store.close()
       }
     }
   })
 
   benchmark.addCase('ExtraDiskCache (overwrite)', async () => {
-    const filename = await createTempFile()
+    const filename = await createTempName()
     const cache = await DiskCache.create(filename)
     const view = new DiskCacheView(
       cache
@@ -93,33 +93,33 @@ go(async () => {
   })
 
   benchmark.addCase('ExtraDiskStore (overwrite)', async () => {
-    const filename = await createTempFile()
-    const store = await DiskStore.create(filename)
+    const store = new DiskStore()
     const view = new DiskStoreView(
       store
     , new StoreIndexKeyConverter()
     , new StoreJSONValueConverter()
     )
     for (let i = 100; i--;) {
-      view.set(i, i)
+      await view.set(i, i)
     }
 
     return {
-      iterate() {
+      async iterate() {
+        const promises: Array<Promise<unknown>> = []
         for (let i = 100; i--;) {
-          view.set(i, i)
+          await view.set(i, i)
         }
+        await Promise.all(promises)
       }
     , async afterAll() {
-        store.close()
-        await remove(filename)
+        await store.close()
       }
     }
   })
 
 
   benchmark.addCase('ExtraDiskCache (read)', async () => {
-    const filename = await createTempFile()
+    const filename = await createTempName()
     const cache = await DiskCache.create(filename)
     const view = new DiskCacheView(
       cache
@@ -144,26 +144,26 @@ go(async () => {
   })
 
   benchmark.addCase('ExtraDiskStore (read)', async () => {
-    const filename = await createTempFile()
-    const store = await DiskStore.create(filename)
+    const store = new DiskStore()
     const view = new DiskStoreView(
       store
     , new StoreIndexKeyConverter()
     , new StoreJSONValueConverter()
     )
     for (let i = 100; i--;) {
-      view.set(i, i)
+      await view.set(i, i)
     }
 
     return {
-      iterate() {
+      async iterate() {
+        const promises: Array<Promise<unknown>> = []
         for (let i = 100; i--;) {
-          view.get(i)
+          promises.push(view.get(i))
         }
+        await Promise.all(promises)
       }
     , async afterAll() {
-        store.close()
-        await remove(filename)
+        await store.close()
       }
     }
   })
