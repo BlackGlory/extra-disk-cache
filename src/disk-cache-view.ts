@@ -36,7 +36,6 @@ export class DiskCacheView<K, V> {
   set(
     key: K
   , value: V
-  , updatedAt: number = Date.now()
     /**
      * `timeToLive > 0`: items will expire after `timeToLive` milliseconds.
      * `timeToLive = 0`: items will expire immediately.
@@ -47,7 +46,6 @@ export class DiskCacheView<K, V> {
     this.cache.set(
       this.keyConverter.toString(key)
     , this.valueConverter.toBuffer(value)
-    , updatedAt
     , timeToLive
     )
   }

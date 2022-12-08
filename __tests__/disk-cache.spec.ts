@@ -7,13 +7,25 @@ import '@blackglory/jest-matchers'
 const TIME_ERROR = 1
 
 describe('DiskCache', () => {
-  test('delete items automatically', async () => {
-    const cache = await DiskCache.create()
-    cache.set('key', Buffer.from('value'), Date.now(), 100)
+  describe('cache expiration', () => {
+    test('delete items after TTL', async () => {
+      const cache = await DiskCache.create()
 
-    await delay(201 + TIME_ERROR)
+      cache.set('key', Buffer.from('value'), 100)
+      await delay(1000 + TIME_ERROR)
 
-    expect(hasRawItem(cache, 'key')).toBeFalsy()
+      expect(hasRawItem(cache, 'key')).toBeFalsy()
+    })
+
+    test('update TTL', async () => {
+      const cache = await DiskCache.create()
+      cache.set('key', Buffer.from('value'), 100)
+
+      cache.set('key', Buffer.from('value'), 500)
+      await delay(400 + TIME_ERROR)
+
+      expect(hasRawItem(cache, 'key')).toBeTruthy()
+    })
   })
 
   describe('has', () => {
@@ -76,18 +88,18 @@ describe('DiskCache', () => {
       setRawItem(cache, {
         key: 'key'
       , value
-      , updated_at: 0
+      , updated_at: Date.now()
       , time_to_live: 0
       })
       const newValue = Buffer.from('new value')
 
-      const result = cache.set('key', newValue, 1800, 3600)
+      const result = cache.set('key', newValue, 3600)
 
       expect(result).toBeUndefined()
       expect(getRawItem(cache, 'key')).toEqual({
         key: 'key'
       , value: newValue
-      , updated_at: 1800
+      , updated_at: expect.any(Number)
       , time_to_live: 3600
       })
     })
@@ -95,13 +107,13 @@ describe('DiskCache', () => {
     test('data does not exist', async () => {
       const cache = await DiskCache.create()
       const value = Buffer.from('value')
-      const result = cache.set('key', value, 1800, 3600)
+      const result = cache.set('key', value, 3600)
 
       expect(result).toBeUndefined()
       expect(getRawItem(cache, 'key')).toEqual({
         key: 'key'
       , value
-      , updated_at: 1800
+      , updated_at: expect.any(Number)
       , time_to_live: 3600
       })
     })
@@ -207,7 +219,7 @@ describe('DiskCache', () => {
 
     test('create, set, close', async () => {
       const cache = await DiskCache.create()
-      cache.set('key', Buffer.from('value'), Date.now(), 1000)
+      cache.set('key', Buffer.from('value'), 1000)
 
       cache.close()
     })

@@ -11,9 +11,10 @@ yarn add extra-disk-cache
 ## Usage
 ```ts
 import { DiskCache } from 'extra-disk-cache'
+import ms from 'ms'
 
 const cache = await DiskCache.create('/tmp/cache')
-cache.set('key', Buffer.from('value'), Date.now(), 3600)
+cache.set('key', Buffer.from('value'), ms('1h'))
 const { value } = cache.get('key')
 ```
 
@@ -34,13 +35,12 @@ class DiskCache {
   set(
     key: string
   , value: Buffer
-  , updatedAt: number = Date.now()
     /**
      * `timeToLive > 0`: items will expire after `timeToLive` milliseconds.
      * `timeToLive = 0`: items will expire immediately.
      * `timeToLive = null`: items will not expire.
      */
-  , timeToLive: number /* ms */ = null
+  , timeToLive: number | null /* ms */ = null
   ): Promise<void>
   delete(key: string): void
   clear(): void
@@ -76,7 +76,6 @@ class DiskCacheView<K, V> {
   set(
     key: K
   , value: V
-  , updatedAt: number = Date.now()
     /**
      * `timeToLive > 0`: items will expire after `timeToLive` milliseconds.
      * `timeToLive = 0`: items will expire immediately.
@@ -118,7 +117,6 @@ class DiskCacheAsyncView<K, V> {
   set(
     key: K
   , value: V
-  , updatedAt: number = Date.now()
     /**
      * `timeToLive > 0`: items will expire after `timeToLive` milliseconds.
      * `timeToLive = 0`: items will expire immediately.

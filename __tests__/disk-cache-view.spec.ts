@@ -74,13 +74,13 @@ describe('DiskCacheView', () => {
       const view = createView(cache)
       const newValue = 'new value'
 
-      const result = view.set('key', newValue, 1800, 3600)
+      const result = view.set('key', newValue, 3600)
 
       expect(result).toBeUndefined()
       expect(getRawItem(cache, 'key')).toEqual({
         key: 'key'
       , value: Buffer.from(newValue)
-      , updated_at: 1800
+      , updated_at: expect.any(Number)
       , time_to_live: 3600
       })
     })
@@ -89,13 +89,13 @@ describe('DiskCacheView', () => {
       const cache = await DiskCache.create()
       const view = createView(cache)
 
-      const result = view.set('key', 'value', 1800, 3600)
+      const result = view.set('key', 'value', 3600)
 
       expect(result).toBeUndefined()
       expect(getRawItem(cache, 'key')).toEqual({
         key: 'key'
       , value: Buffer.from('value')
-      , updated_at: 1800
+      , updated_at: expect.any(Number)
       , time_to_live: 3600
       })
     })

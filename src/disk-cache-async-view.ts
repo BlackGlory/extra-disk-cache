@@ -35,7 +35,6 @@ export class DiskCacheAsyncView<K, V> {
   async set(
     key: K
   , value: V
-  , updatedAt: number = Date.now()
     /**
      * `timeToLive > 0`: items will expire after `timeToLive` milliseconds.
      * `timeToLive = 0`: items will expire immediately.
@@ -46,7 +45,6 @@ export class DiskCacheAsyncView<K, V> {
     this.cache.set(
       await this.keyConverter.toString(key)
     , await this.valueConverter.toBuffer(value)
-    , updatedAt
     , timeToLive
     )
   }
