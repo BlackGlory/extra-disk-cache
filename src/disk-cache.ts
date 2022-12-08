@@ -51,7 +51,12 @@ export class DiskCache {
     }
 
     if (isntUndefined(this.minimalExpirationTimestamp)) {
-      const cancel = setSchedule(this.minimalExpirationTimestamp, this._clearExpiredItems)
+      const cancel = setSchedule(this.minimalExpirationTimestamp, () => {
+        this._clearExpiredItems()
+
+        this.minimalExpirationTimestamp = this.getMinimalExpirationTimestamp()
+        this.scheduleCleaner()
+      })
       this.cancelScheduledCleaner = cancel
     }
   }

@@ -26,6 +26,28 @@ describe('DiskCache', () => {
 
       expect(hasRawItem(cache, 'key')).toBeTruthy()
     })
+
+    test('edge: delete multiple items', async () => {
+      const cache = await DiskCache.create()
+
+      cache.set('key1', Buffer.from('value'), 100)
+      cache.set('key2', Buffer.from('value'), 100)
+      await delay(1000 + TIME_ERROR)
+
+      expect(hasRawItem(cache, 'key1')).toBeFalsy()
+      expect(hasRawItem(cache, 'key2')).toBeFalsy()
+    })
+
+    test('edge: schedule next cleaner', async () => {
+      const cache = await DiskCache.create()
+
+      cache.set('key1', Buffer.from('value'), 100)
+      cache.set('key2', Buffer.from('value'), 500)
+      await delay(1000 + TIME_ERROR)
+
+      expect(hasRawItem(cache, 'key1')).toBeFalsy()
+      expect(hasRawItem(cache, 'key2')).toBeFalsy()
+    })
   })
 
   describe('has', () => {
