@@ -6,10 +6,10 @@
 PRAGMA journal_mode = WAL;
 
 CREATE TABLE cache (
-  key                  TEXT    NOT NULL UNIQUE
-, value                BLOB    NOT NULL
-, updated_at           INTEGER NOT NULL
-, time_to_live         INTEGER NULL
+  key          TEXT    NOT NULL UNIQUE
+, value        BLOB    NOT NULL
+, updated_at   INTEGER NOT NULL
+, time_to_live INTEGER NULL
 ) STRICT;
 
 CREATE INDEX idx_cache_deletion_time
