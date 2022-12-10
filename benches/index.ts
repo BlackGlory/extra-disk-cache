@@ -163,7 +163,7 @@ go(async () => {
       async iterate() {
         const promises: Array<Promise<unknown>> = []
         for (let i = 100; i--;) {
-          await view.set(i, i)
+          promises.push(view.set(i, i))
         }
         await Promise.all(promises)
       }
