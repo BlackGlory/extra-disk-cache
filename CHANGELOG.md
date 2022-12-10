@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.9.0](https://github.com/BlackGlory/extra-disk-cache/compare/v0.8.23...v0.9.0) (2022-12-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* - The database schema has been rewritten.
+- The return value of `get` methods have changed.
+* - The signature of `DiskCache#set` changed.
+- The signature of `DiskCacheView#set` changed.
+- The signature of `DiskCacheAsyncView#set` changed.
+
+### Features
+
+* add `DiskCacheWithCache` ([b0abd64](https://github.com/BlackGlory/extra-disk-cache/commit/b0abd64df3070548e6b1e958068b6eaf15d6080b))
+
+
+### Bug Fixes
+
+* edge cases ([0b6524c](https://github.com/BlackGlory/extra-disk-cache/commit/0b6524c13ec72b4e4db13e64657e841f982cc2c3))
+
+
+* improve schema ([3f1aa4d](https://github.com/BlackGlory/extra-disk-cache/commit/3f1aa4d4c54a353524b0a8ccc0c9c2aaabb451ed))
+* remove the parameter `updatedAt` of `set` and improve the cache expiration ([011e917](https://github.com/BlackGlory/extra-disk-cache/commit/011e917c4ba79187289a04c22cbc98c228d536c6))
+
 ### [0.8.23](https://github.com/BlackGlory/extra-disk-cache/compare/v0.8.22...v0.8.23) (2022-12-05)
 
 
