@@ -15,19 +15,11 @@ export class DiskCacheView<K, V> {
     return this.cache.has(this.keyConverter.toString(key))
   }
 
-  get(key: K): {
-    value: V
-    updatedAt: number
-    timeToLive: number | null
-  } | undefined {
-    const item = this.cache.get(this.keyConverter.toString(key))
+  get(key: K): V | undefined {
+    const result = this.cache.get(this.keyConverter.toString(key))
 
-    if (item) {
-      return {
-        value: this.valueConverter.fromBuffer(item.value)
-      , updatedAt: item.updatedAt
-      , timeToLive: item.timeToLive
-      }
+    if (result) {
+      return this.valueConverter.fromBuffer(result)
     } else {
       return undefined
     }

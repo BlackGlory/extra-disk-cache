@@ -10,11 +10,11 @@ import * as Iter from 'iterable-operator'
 import { withLazyStatic, lazyStatic } from 'extra-lazy'
 
 export class DiskCache {
-  private minimalExpirationTimestamp?: number
+  private minimalDeletionTime?: number
   private cancelScheduledCleaner?: () => void
 
   private constructor(public _db: IDatabase) {
-    this.minimalExpirationTimestamp = this.getMinimalExpirationTimestamp()
+    this.minimalDeletionTime = this.getMinimalExpirationTimestamp()
     this._clearExpiredItems()
     this.scheduleCleaner()
   }
@@ -50,14 +50,13 @@ export class DiskCache {
       delete this.cancelScheduledCleaner
     }
 
-    if (isntUndefined(this.minimalExpirationTimestamp)) {
-      const cancel = setSchedule(this.minimalExpirationTimestamp, () => {
+    if (isntUndefined(this.minimalDeletionTime)) {
+      this.cancelScheduledCleaner = setSchedule(this.minimalDeletionTime, () => {
         this._clearExpiredItems()
 
-        this.minimalExpirationTimestamp = this.getMinimalExpirationTimestamp()
+        this.minimalDeletionTime = this.getMinimalExpirationTimestamp()
         this.scheduleCleaner()
       })
-      this.cancelScheduledCleaner = cancel
     }
   }
 
@@ -87,29 +86,14 @@ export class DiskCache {
     return row.item_exists === 1
   })
 
-  get = withLazyStatic((key: string): {
-    value: Buffer
-    updatedAt: number
-    timeToLive: number | null
-  } | undefined => {
-    const row: {
-      value: Buffer
-      updated_at: number
-      time_to_live: number | null
-    } | undefined = lazyStatic(() => this._db.prepare(`
+  get = withLazyStatic((key: string): Buffer | undefined => {
+    const row: { value: Buffer } | undefined = lazyStatic(() => this._db.prepare(`
       SELECT value
-           , updated_at
-           , time_to_live
         FROM cache
        WHERE key = $key
     `), [this._db]).get({ key })
-    if (isUndefined(row)) return undefined
 
-    return {
-      value: row.value
-    , updatedAt: row.updated_at
-    , timeToLive: row.time_to_live
-    }
+    return row?.value
   })
 
   set = withLazyStatic((
@@ -122,41 +106,38 @@ export class DiskCache {
      */
   , timeToLive: number | null = null
   ): void => {
-    const updatedAt = Date.now()
-
     assert(
       isNull(timeToLive) || timeToLive >= 0
     , 'timeToLive should be greater than or equal to 0'
     )
 
+    const expirationTime = isntNull(timeToLive)
+      ? Date.now() + timeToLive
+      : null
+
     lazyStatic(() => this._db.prepare(`
       INSERT INTO cache (
                     key
                   , value
-                  , updated_at
-                  , time_to_live
+                  , expiration_time
                   )
-           VALUES ($key, $value, $updatedAt, $timeToLive)
+           VALUES ($key, $value, $expirationTime)
                ON CONFLICT(key)
                DO UPDATE SET value = $value
-                           , updated_at = $updatedAt
-                           , time_to_live = $timeToLive
+                           , expiration_time = $expirationTime
     `), [this._db]).run({
       key
     , value
-    , updatedAt
-    , timeToLive
+    , expirationTime
     })
 
-    if (isntNull(timeToLive)) {
-      const expirationTimestamp = updatedAt + timeToLive
-
-      if (isUndefined(this.minimalExpirationTimestamp)) {
-        this.minimalExpirationTimestamp = expirationTimestamp
+    if (isntNull(expirationTime)) {
+      if (isUndefined(this.minimalDeletionTime)) {
+        this.minimalDeletionTime = expirationTime
         this.scheduleCleaner()
       } else {
-        if (expirationTimestamp < this.minimalExpirationTimestamp) {
-          this.minimalExpirationTimestamp = expirationTimestamp
+        if (expirationTime < this.minimalDeletionTime) {
+          this.minimalDeletionTime = expirationTime
           this.scheduleCleaner()
         }
       }
@@ -193,22 +174,22 @@ export class DiskCache {
   _clearExpiredItems = withLazyStatic((timestamp: number = Date.now()): void => {
     lazyStatic(() => this._db.prepare(`
       DELETE FROM cache
-       WHERE time_to_live IS NOT NULL
-         AND updated_at + time_to_live <= $timestamp
+       WHERE expiration_time IS NOT NULL
+         AND expiration_time <= $timestamp
     `), [this._db])
       .run({ timestamp })
   })
 
   private getMinimalExpirationTimestamp = withLazyStatic((): number | undefined => {
-    const row: { timestamp: number } | undefined = lazyStatic(() => this._db.prepare(`
-      SELECT updated_at + time_to_live AS timestamp
+    const row: { expiration_time: number } | undefined = lazyStatic(() => this._db.prepare(`
+      SELECT expiration_time
         FROM cache
-       WHERE time_to_live IS NOT NULL
-       ORDER BY updated_at + time_to_live ASC
+       WHERE expiration_time IS NOT NULL
+       ORDER BY expiration_time ASC
        LIMIT 1
     `), [this._db])
       .get()
 
-    return row?.timestamp
+    return row?.expiration_time
   })
 }

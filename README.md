@@ -15,7 +15,7 @@ import ms from 'ms'
 
 const cache = await DiskCache.create('/tmp/cache')
 cache.set('key', Buffer.from('value'), ms('1h'))
-const { value } = cache.get('key')
+const value = cache.get('key')?.toString()
 ```
 
 ## API
@@ -27,11 +27,7 @@ class DiskCache {
   close(): void
 
   has(key: string): boolean
-  get(key: string): {
-    value: Buffer
-    updatedAt: number
-    timeToLive: number | null
-  }
+  get(key: string): Buffer | undefined
   set(
     key: string
   , value: Buffer
@@ -68,11 +64,7 @@ class DiskCacheView<K, V> {
   )
 
   has(key: K): boolean
-  get(key: K): {
-    value: V
-    updatedAt: number
-    timeToLive: number | null
-  } | undefined
+  get(key: K): V | undefined
   set(
     key: K
   , value: V
@@ -109,11 +101,7 @@ class DiskCacheAsyncView<K, V> {
   )
 
   has(key: K): Promise<boolean>
-  get(key: K): Promise<{
-    value: V
-    updatedAt: number
-    timeToLive: number | null
-  } | undefined>
+  get(key: K): Promise<V | undefined>
   set(
     key: K
   , value: V

@@ -1,6 +1,5 @@
 import { setRawItem, getRawItem, hasRawItem } from '@test/utils'
 import { DiskCacheAsyncView } from '@src/disk-cache-async-view'
-import { delay } from 'extra-promise'
 import { DiskCache } from '@src/disk-cache'
 import { toArrayAsync } from '@blackglory/prelude'
 import '@blackglory/jest-matchers'
@@ -13,8 +12,7 @@ describe('DiskCacheAsyncView', () => {
       setRawItem(cache, {
         key: 'key'
       , value: Buffer.from('value')
-      , updated_at: 0
-      , time_to_live: 0
+      , expiration_time: null
       })
       const view = createView(cache)
 
@@ -39,18 +37,13 @@ describe('DiskCacheAsyncView', () => {
       setRawItem(cache, {
         key: 'key'
       , value: Buffer.from('value')
-      , updated_at: 0
-      , time_to_live: 0
+      , expiration_time: null
       })
       const view = createView(cache)
 
       const result = await view.get('key')
 
-      expect(result).toStrictEqual({
-        value: 'value'
-      , updatedAt: 0
-      , timeToLive: 0
-      })
+      expect(result).toStrictEqual('value')
     })
 
     test('item does not exist', async () => {
@@ -65,40 +58,45 @@ describe('DiskCacheAsyncView', () => {
 
   describe('set', () => {
     test('item exists', async () => {
-      const cache = await DiskCache.create()
-      setRawItem(cache, {
-        key: 'key'
-      , value: Buffer.from('value')
-      , updated_at: 0
-      , time_to_live: 0
-      })
-      const view = createView(cache)
-      const newValue = 'new value'
+      jest.useFakeTimers({ now: 1000 })
+      try {
+        const cache = await DiskCache.create()
+        setRawItem(cache, {
+          key: 'key'
+        , value: Buffer.from('value')
+        , expiration_time: null
+        })
+        const view = createView(cache)
+        const newValue = 'new value'
 
-      const result = await view.set('key', newValue, 3600)
+        await view.set('key', newValue, 3600)
 
-      expect(result).toBeUndefined()
-      expect(getRawItem(cache, 'key')).toEqual({
-        key: 'key'
-      , value: Buffer.from(newValue)
-      , updated_at: expect.any(Number)
-      , time_to_live: 3600
-      })
+        expect(getRawItem(cache, 'key')).toEqual({
+          key: 'key'
+        , value: Buffer.from(newValue)
+        , expiration_time: 4600
+        })
+      } finally {
+        jest.useRealTimers()
+      }
     })
 
     test('data does not exist', async () => {
-      const cache = await DiskCache.create()
-      const view = createView(cache)
+      jest.useFakeTimers({ now: 1000 })
+      try {
+        const cache = await DiskCache.create()
+        const view = createView(cache)
 
-      const result = await view.set('key', 'value', 3600)
+        await view.set('key', 'value', 3600)
 
-      expect(result).toBeUndefined()
-      expect(getRawItem(cache, 'key')).toEqual({
-        key: 'key'
-      , value: Buffer.from('value')
-      , updated_at: expect.any(Number)
-      , time_to_live: 3600
-      })
+        expect(getRawItem(cache, 'key')).toEqual({
+          key: 'key'
+        , value: Buffer.from('value')
+        , expiration_time: 4600
+        })
+      } finally {
+        jest.useRealTimers()
+      }
     })
   })
 
@@ -107,8 +105,7 @@ describe('DiskCacheAsyncView', () => {
     setRawItem(cache, {
       key: 'key'
     , value: Buffer.from('value')
-    , updated_at: 0
-    , time_to_live: 0
+    , expiration_time: null
     })
     const view = createView(cache)
 
@@ -123,8 +120,7 @@ describe('DiskCacheAsyncView', () => {
     setRawItem(cache, {
       key: 'key'
     , value: Buffer.from('value')
-    , updated_at: 0
-    , time_to_live: 0
+    , expiration_time: null
     })
     const view = createView(cache)
 
@@ -140,8 +136,7 @@ describe('DiskCacheAsyncView', () => {
       setRawItem(cache, {
         key: 'key'
       , value: Buffer.from('value')
-      , updated_at: 0
-      , time_to_live: 0
+      , expiration_time: null
       })
       const view = createView(cache)
 
@@ -156,14 +151,12 @@ describe('DiskCacheAsyncView', () => {
       setRawItem(cache, {
         key: 'non-prefix-key'
       , value: Buffer.from('value')
-      , updated_at: 0
-      , time_to_live: 0
+      , expiration_time: null
       })
       setRawItem(cache, {
         key: 'prefix-key'
       , value: Buffer.from('value')
-      , updated_at: 0
-      , time_to_live: 0
+      , expiration_time: null
       })
       const view = createViewWithPrefix(cache, 'prefix-')
 
@@ -193,24 +186,12 @@ function createView(cache: DiskCache): DiskCacheAsyncView<string, string> {
   return new DiskCacheAsyncView<string, string>(
     cache
   , {
-      toString: async x => {
-        await delay(0)
-        return x
-      }
-    , fromString: async x => {
-        await delay(0)
-        return x
-      }
+      toString: async x => x
+    , fromString: async x => x
     }
   , { 
-      fromBuffer: async x => {
-        await delay(0)
-        return x.toString()
-      }
-    , toBuffer: async x => {
-        await delay(0)
-        return Buffer.from(x)
-      }
+      fromBuffer: async x => x.toString()
+    , toBuffer: async x => Buffer.from(x)
     }
   )
 }

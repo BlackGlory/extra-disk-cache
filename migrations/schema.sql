@@ -2,12 +2,11 @@
 PRAGMA journal_mode = WAL;
 
 CREATE TABLE cache (
-  key          TEXT    NOT NULL UNIQUE
-, value        BLOB    NOT NULL
-, updated_at   INTEGER NOT NULL
-, time_to_live INTEGER NULL
+  key             TEXT    NOT NULL UNIQUE
+, value           BLOB    NOT NULL
+, expiration_time INTEGER NULL -- 表示过期时间的JavaScript时间戳
 ) STRICT;
 
-CREATE INDEX idx_cache_deletion_time
-          ON cache(updated_at + time_to_live)
-       WHERE time_to_live IS NOT NULL;
+CREATE INDEX idx_cache_expiration_time
+          ON cache(expiration_time)
+       WHERE deletion_time IS NOT NULL;

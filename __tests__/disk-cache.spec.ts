@@ -12,7 +12,7 @@ describe('DiskCache', () => {
       const cache = await DiskCache.create()
 
       cache.set('key', Buffer.from('value'), 100)
-      await delay(1000 + TIME_ERROR)
+      await delay(100 + TIME_ERROR)
 
       expect(hasRawItem(cache, 'key')).toBeFalsy()
     })
@@ -56,8 +56,7 @@ describe('DiskCache', () => {
       setRawItem(cache, {
         key: 'key'
       , value: Buffer.from('value')
-      , updated_at: 0
-      , time_to_live: 0
+      , expiration_time: 0
       })
 
       const result = cache.has('key')
@@ -81,17 +80,12 @@ describe('DiskCache', () => {
       setRawItem(cache, {
         key: 'key'
       , value
-      , updated_at: 0
-      , time_to_live: 0
+      , expiration_time: 0
       })
 
       const result = cache.get('key')
 
-      expect(result).toStrictEqual({
-        value
-      , updatedAt: 0
-      , timeToLive: 0
-      })
+      expect(result).toStrictEqual(value)
     })
 
     test('item does not exist', async () => {
@@ -105,39 +99,47 @@ describe('DiskCache', () => {
 
   describe('set', () => {
     test('item exists', async () => {
-      const cache = await DiskCache.create()
-      const value = Buffer.from('value')
-      setRawItem(cache, {
-        key: 'key'
-      , value
-      , updated_at: Date.now()
-      , time_to_live: 0
-      })
-      const newValue = Buffer.from('new value')
+      jest.useFakeTimers({ now: 1000 })
+      try {
+        const cache = await DiskCache.create()
+        const value = Buffer.from('value')
+        setRawItem(cache, {
+          key: 'key'
+        , value
+        , expiration_time: null
+        })
+        const newValue = Buffer.from('new value')
 
-      const result = cache.set('key', newValue, 3600)
+        cache.set('key', newValue, 3600)
 
-      expect(result).toBeUndefined()
-      expect(getRawItem(cache, 'key')).toEqual({
-        key: 'key'
-      , value: newValue
-      , updated_at: expect.any(Number)
-      , time_to_live: 3600
-      })
+        const item = getRawItem(cache, 'key')
+        expect(item).toEqual({
+          key: 'key'
+        , value: newValue
+        , expiration_time: 4600
+        })
+      } finally {
+        jest.useRealTimers()
+      }
     })
 
     test('data does not exist', async () => {
-      const cache = await DiskCache.create()
-      const value = Buffer.from('value')
-      const result = cache.set('key', value, 3600)
+      jest.useFakeTimers({ now: 1000 })
+      try {
+        const cache = await DiskCache.create()
+        const value = Buffer.from('value')
 
-      expect(result).toBeUndefined()
-      expect(getRawItem(cache, 'key')).toEqual({
-        key: 'key'
-      , value
-      , updated_at: expect.any(Number)
-      , time_to_live: 3600
-      })
+        cache.set('key', value, 3600)
+
+        const item = getRawItem(cache, 'key')
+        expect(item).toEqual({
+          key: 'key'
+        , value
+        , expiration_time: 4600
+        })
+      } finally {
+        jest.useRealTimers()
+      }
     })
   })
 
@@ -147,8 +149,7 @@ describe('DiskCache', () => {
     setRawItem(cache, {
       key: 'key'
     , value
-    , updated_at: 0
-    , time_to_live: 0
+    , expiration_time: null
     })
 
     const result = cache.delete('key')
@@ -162,8 +163,7 @@ describe('DiskCache', () => {
     setRawItem(cache, {
       key: 'key'
     , value: Buffer.from('value')
-    , updated_at: 0
-    , time_to_live: 0
+    , expiration_time: null
     })
 
     const result = cache.clear()
@@ -178,8 +178,7 @@ describe('DiskCache', () => {
       setRawItem(cache, {
         key: 'key'
       , value: Buffer.from('value')
-      , updated_at: 0
-      , time_to_live: 0
+      , expiration_time: null
       })
 
       const iter = cache.keys()
@@ -193,19 +192,14 @@ describe('DiskCache', () => {
       setRawItem(cache, {
         key: 'key'
       , value: Buffer.from('value')
-      , updated_at: 0
-      , time_to_live: 0
+      , expiration_time: null
       })
 
       const iter = cache.keys()
-      const key = cache.get('key')
+      const value = cache.get('key')
       const result = iter.next()
 
-      expect(key).toStrictEqual({
-        value: Buffer.from('value')
-      , updatedAt: 0
-      , timeToLive: 0
-      })
+      expect(value).toStrictEqual(Buffer.from('value'))
       expect(result).toStrictEqual({
         done: false
       , value: 'key'
@@ -217,8 +211,7 @@ describe('DiskCache', () => {
       setRawItem(cache, {
         key: 'key'
       , value: Buffer.from('value')
-      , updated_at: 0
-      , time_to_live: 0
+      , expiration_time: null
       })
 
       const iter = cache.keys()
@@ -248,31 +241,33 @@ describe('DiskCache', () => {
   })
 
   test('clearExpiredItems', async () => {
-    const cache = await DiskCache.create()
-    const value = Buffer.from('value')
-    setRawItem(cache, {
-      key: '#1'
-    , value
-    , updated_at: 0
-    , time_to_live: null
-    })
-    setRawItem(cache, {
-      key: '#2'
-    , value
-    , updated_at: 0
-    , time_to_live: 100
-    })
-    setRawItem(cache, {
-      key: '#3'
-    , value
-    , updated_at: 0
-    , time_to_live: 200
-    })
+    jest.useFakeTimers({ now: 0 })
+    try {
+      const cache = await DiskCache.create()
+      const value = Buffer.from('value')
+      setRawItem(cache, {
+        key: '#1'
+      , value
+      , expiration_time: null
+      })
+      setRawItem(cache, {
+        key: '#2'
+      , value
+      , expiration_time: 100
+      })
+      setRawItem(cache, {
+        key: '#3'
+      , value
+      , expiration_time: 300
+      })
 
-    cache._clearExpiredItems(150)
-    
-    expect(hasRawItem(cache, '#1')).toBeTruthy()
-    expect(hasRawItem(cache, '#2')).toBeFalsy()
-    expect(hasRawItem(cache, '#3')).toBeTruthy()
+      cache._clearExpiredItems(200)
+      
+      expect(hasRawItem(cache, '#1')).toBeTruthy()
+      expect(hasRawItem(cache, '#2')).toBeFalsy()
+      expect(hasRawItem(cache, '#3')).toBeTruthy()
+    } finally {
+      jest.useRealTimers()
+    }
   })
 })

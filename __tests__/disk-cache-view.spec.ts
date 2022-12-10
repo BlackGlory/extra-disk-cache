@@ -12,8 +12,7 @@ describe('DiskCacheView', () => {
       setRawItem(cache, {
         key: 'key'
       , value: Buffer.from('value')
-      , updated_at: 0
-      , time_to_live: 0
+      , expiration_time: null
       })
       const view = createView(cache)
 
@@ -38,18 +37,13 @@ describe('DiskCacheView', () => {
       setRawItem(cache, {
         key: 'key'
       , value: Buffer.from('value')
-      , updated_at: 0
-      , time_to_live: 0
+      , expiration_time: null
       })
       const view = createView(cache)
 
       const result = view.get('key')
 
-      expect(result).toStrictEqual({
-        value: 'value'
-      , updatedAt: 0
-      , timeToLive: 0
-      })
+      expect(result).toBe('value')
     })
 
     test('item does not exist', async () => {
@@ -64,40 +58,45 @@ describe('DiskCacheView', () => {
 
   describe('set', () => {
     test('item exists', async () => {
-      const cache = await DiskCache.create()
-      setRawItem(cache, {
-        key: 'key'
-      , value: Buffer.from('value')
-      , updated_at: 0
-      , time_to_live: 0
-      })
-      const view = createView(cache)
-      const newValue = 'new value'
+      jest.useFakeTimers({ now: 1000 })
+      try {
+        const cache = await DiskCache.create()
+        setRawItem(cache, {
+          key: 'key'
+        , value: Buffer.from('value')
+        , expiration_time: null
+        })
+        const view = createView(cache)
+        const newValue = 'new value'
 
-      const result = view.set('key', newValue, 3600)
+        view.set('key', newValue, 3600)
 
-      expect(result).toBeUndefined()
-      expect(getRawItem(cache, 'key')).toEqual({
-        key: 'key'
-      , value: Buffer.from(newValue)
-      , updated_at: expect.any(Number)
-      , time_to_live: 3600
-      })
+        expect(getRawItem(cache, 'key')).toEqual({
+          key: 'key'
+        , value: Buffer.from(newValue)
+        , expiration_time: 4600
+        })
+      } finally {
+        jest.useRealTimers()
+      }
     })
 
     test('data does not exist', async () => {
-      const cache = await DiskCache.create()
-      const view = createView(cache)
+      jest.useFakeTimers({ now: 1000 })
+      try {
+        const cache = await DiskCache.create()
+        const view = createView(cache)
 
-      const result = view.set('key', 'value', 3600)
+        view.set('key', 'value', 3600)
 
-      expect(result).toBeUndefined()
-      expect(getRawItem(cache, 'key')).toEqual({
-        key: 'key'
-      , value: Buffer.from('value')
-      , updated_at: expect.any(Number)
-      , time_to_live: 3600
-      })
+        expect(getRawItem(cache, 'key')).toEqual({
+          key: 'key'
+        , value: Buffer.from('value')
+        , expiration_time: 4600
+        })
+      } finally {
+        jest.useRealTimers()
+      }
     })
   })
 
@@ -106,8 +105,7 @@ describe('DiskCacheView', () => {
     setRawItem(cache, {
       key: 'key'
     , value: Buffer.from('value')
-    , updated_at: 0
-    , time_to_live: 0
+    , expiration_time: null
     })
     const view = createView(cache)
 
@@ -122,8 +120,7 @@ describe('DiskCacheView', () => {
     setRawItem(cache, {
       key: 'key'
     , value: Buffer.from('value')
-    , updated_at: 0
-    , time_to_live: 0
+    , expiration_time: null
     })
     const view = createView(cache)
 
@@ -139,8 +136,7 @@ describe('DiskCacheView', () => {
       setRawItem(cache, {
         key: 'key'
       , value: Buffer.from('value')
-      , updated_at: 0
-      , time_to_live: 0
+      , expiration_time: null
       })
       const view = createView(cache)
 
@@ -155,14 +151,12 @@ describe('DiskCacheView', () => {
       setRawItem(cache, {
         key: 'non-prefix-key'
       , value: Buffer.from('value')
-      , updated_at: 0
-      , time_to_live: 0
+      , expiration_time: null
       })
       setRawItem(cache, {
         key: 'prefix-key'
       , value: Buffer.from('value')
-      , updated_at: 0
-      , time_to_live: 0
+      , expiration_time: null
       })
       const view = createViewWithPrefix(cache, 'prefix-')
 

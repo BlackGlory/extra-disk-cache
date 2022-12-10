@@ -14,19 +14,11 @@ export class DiskCacheAsyncView<K, V> {
     return this.cache.has(await this.keyConverter.toString(key))
   }
 
-  async get(key: K): Promise<{
-    value: V
-    updatedAt: number
-    timeToLive: number | null
-  } | undefined> {
-    const item = this.cache.get(await this.keyConverter.toString(key))
+  async get(key: K): Promise<V | undefined> {
+    const result = this.cache.get(await this.keyConverter.toString(key))
 
-    if (item) {
-      return {
-        value: await this.valueConverter.fromBuffer(item.value)
-      , updatedAt: item.updatedAt
-      , timeToLive: item.timeToLive
-      }
+    if (result) {
+      return await this.valueConverter.fromBuffer(result)
     } else {
       return undefined
     }
