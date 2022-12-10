@@ -1,4 +1,5 @@
 import { DiskCache } from '@src/disk-cache'
+import { DiskCacheWithCache } from '@src/disk-cache-with-cache'
 import { IKeyConverter, IValueConverter } from '@src/types'
 import { map, filter } from 'iterable-operator'
 import { isntUndefined } from '@blackglory/prelude'
@@ -6,7 +7,7 @@ import { pipe } from 'extra-utils'
 
 export class DiskCacheView<K, V> {
   constructor(
-    private cache: DiskCache
+    private cache: DiskCache | DiskCacheWithCache
   , private keyConverter: IKeyConverter<K>
   , private valueConverter: IValueConverter<V>
   ) {}

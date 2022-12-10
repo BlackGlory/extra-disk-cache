@@ -14,6 +14,9 @@ export function setRawItem(cache: DiskCache, raw: IRawItem): void {
                 , expiration_time
                 )
          VALUES ($key, $value, $expiration_time)
+             ON CONFLICT(key)
+             DO UPDATE SET value = $value
+                         , expiration_time = $expiration_time
   `).run(raw)
 }
 

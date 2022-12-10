@@ -173,7 +173,7 @@ describe('DiskCache', () => {
   })
 
   describe('keys', () => {
-    test('normal', async () => {
+    test('general', async () => {
       const cache = await DiskCache.create()
       setRawItem(cache, {
         key: 'key'

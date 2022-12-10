@@ -58,9 +58,9 @@ interface IValueConverter<T> {
 
 class DiskCacheView<K, V> {
   constructor(
-    private cache: DiskCache
-  , private keyConverter: IKeyConverter<K>
-  , private valueConverter: IValueConverter<V>
+    cache: DiskCache | DiskCacheWithCache
+  , keyConverter: IKeyConverter<K>
+  , valueConverter: IValueConverter<V>
   )
 
   has(key: K): boolean
@@ -95,7 +95,7 @@ interface IValueAsyncConverter<T> {
 
 class DiskCacheAsyncView<K, V> {
   constructor(
-    cache: DiskCache
+    cache: DiskCache | DiskCacheWithCache
   , keyConverter: IKeyAsyncConverter<K>
   , valueConverter: IValueAsyncConverter<V>
   )
@@ -115,6 +115,29 @@ class DiskCacheAsyncView<K, V> {
   delete(key: K): Promise<void>
   clear(): void
   keys(): AsyncIterableIterator<K>
+}
+```
+
+### DiskCacheWithCache
+```ts
+interface ICache {
+  set(key: string, value: Buffer | boolean | undefined, timeToLive?: number): void
+  get(key: string): Buffer | boolean | undefined
+  delete(key: string): void
+  clear(): void
+}
+
+class DiskCacheWithCache {
+  constructor(diskCache: DiskCache, memoryCache: ICache)
+
+  close(): void
+
+  has(key: string): boolean
+  get(key: string): Buffer | undefined
+  set(key: string, value: Buffer): void
+  delete(key: string): void
+  clear(): void
+  keys(): IterableIterator<string>
 }
 ```
 

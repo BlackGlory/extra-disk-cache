@@ -1,11 +1,12 @@
 import { DiskCache } from '@src/disk-cache'
+import { DiskCacheWithCache } from '@src/disk-cache-with-cache'
 import { IKeyAsyncConverter, IValueAsyncConverter } from '@src/types'
 import { mapAsync, filterAsync } from 'iterable-operator'
 import { pipe, isntUndefined } from 'extra-utils'
 
 export class DiskCacheAsyncView<K, V> {
   constructor(
-    private cache: DiskCache
+    private cache: DiskCache | DiskCacheWithCache
   , private keyConverter: IKeyAsyncConverter<K>
   , private valueConverter: IValueAsyncConverter<V>
   ) {}
