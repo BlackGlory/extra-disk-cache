@@ -25,6 +25,24 @@ export class DiskCacheAsyncView<K, V> {
     }
   }
 
+  async getWithMetadata(key: K): Promise<{
+    value: V
+    updatedAt: number
+    timeToLive: number | null
+  } | undefined> {
+    const result = this.cache.getWithMetadata(await this.keyConverter.toString(key))
+
+    if (result) {
+      return {
+        value: await this.valueConverter.fromBuffer(result.value)
+      , updatedAt: result.updatedAt
+      , timeToLive: result.timeToLive
+      }
+    } else {
+      return undefined
+    }
+  }
+
   async set(
     key: K
   , value: V

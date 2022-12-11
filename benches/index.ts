@@ -47,7 +47,7 @@ go(async () => {
   benchmark.addCase('ExtraDiskCacheWithCache (write)', async () => {
     const filename = await createTempName()
     const diskCache = await DiskCache.create(filename)
-    const memoryCache = new TLRUMap<string, Buffer | boolean | undefined>(100)
+    const memoryCache = new TLRUMap<string, any>(100)
     const cache = new DiskCacheWithCache(diskCache, memoryCache)
     const view = new DiskCacheView(
       cache
@@ -124,7 +124,7 @@ go(async () => {
   benchmark.addCase('ExtraDiskCacheWithCache (overwrite)', async () => {
     const filename = await createTempName()
     const diskCache = await DiskCache.create(filename)
-    const memoryCache = new TLRUMap<string, Buffer | boolean | undefined>(100)
+    const memoryCache = new TLRUMap<string, any>(100)
     const cache = new DiskCacheWithCache(diskCache, memoryCache)
     const view = new DiskCacheView(
       cache
@@ -202,7 +202,7 @@ go(async () => {
   benchmark.addCase('ExtraDiskCacheWithCache (read)', async () => {
     const filename = await createTempName()
     const diskCache = await DiskCache.create(filename)
-    const memoryCache = new TLRUMap<string, Buffer | boolean | undefined>(100)
+    const memoryCache = new TLRUMap<string, any>(100)
     const cache = new DiskCacheWithCache(diskCache, memoryCache)
     const view = new DiskCacheView(
       cache

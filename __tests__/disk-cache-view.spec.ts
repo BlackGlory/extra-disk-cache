@@ -12,7 +12,8 @@ describe('DiskCacheView', () => {
       setRawItem(cache, {
         key: 'key'
       , value: Buffer.from('value')
-      , expiration_time: null
+      , updated_at: 0
+      , time_to_live: null
       })
       const view = createView(cache)
 
@@ -37,7 +38,8 @@ describe('DiskCacheView', () => {
       setRawItem(cache, {
         key: 'key'
       , value: Buffer.from('value')
-      , expiration_time: null
+      , updated_at: 0
+      , time_to_live: null
       })
       const view = createView(cache)
 
@@ -56,6 +58,36 @@ describe('DiskCacheView', () => {
     })
   })
 
+  describe('getWithMetadata', () => {
+    test('item exists', async () => {
+      const cache = await DiskCache.create()
+      setRawItem(cache, {
+        key: 'key'
+      , value: Buffer.from('value')
+      , updated_at: 0
+      , time_to_live: null
+      })
+      const view = createView(cache)
+
+      const result = view.getWithMetadata('key')
+
+      expect(result).toStrictEqual({
+        value: 'value'
+      , updatedAt: 0
+      , timeToLive: null
+      })
+    })
+
+    test('item does not exist', async () => {
+      const cache = await DiskCache.create()
+      const view = createView(cache)
+
+      const result = view.getWithMetadata('key')
+
+      expect(result).toBeUndefined()
+    })
+  })
+
   describe('set', () => {
     test('item exists', async () => {
       jest.useFakeTimers({ now: 1000 })
@@ -64,7 +96,8 @@ describe('DiskCacheView', () => {
         setRawItem(cache, {
           key: 'key'
         , value: Buffer.from('value')
-        , expiration_time: null
+        , updated_at: 0
+        , time_to_live: null
         })
         const view = createView(cache)
         const newValue = 'new value'
@@ -74,7 +107,8 @@ describe('DiskCacheView', () => {
         expect(getRawItem(cache, 'key')).toEqual({
           key: 'key'
         , value: Buffer.from(newValue)
-        , expiration_time: 4600
+        , updated_at: 1000
+        , time_to_live: 3600
         })
       } finally {
         jest.useRealTimers()
@@ -92,7 +126,8 @@ describe('DiskCacheView', () => {
         expect(getRawItem(cache, 'key')).toEqual({
           key: 'key'
         , value: Buffer.from('value')
-        , expiration_time: 4600
+        , updated_at: 1000
+        , time_to_live: 3600
         })
       } finally {
         jest.useRealTimers()
@@ -105,7 +140,8 @@ describe('DiskCacheView', () => {
     setRawItem(cache, {
       key: 'key'
     , value: Buffer.from('value')
-    , expiration_time: null
+    , updated_at: 0
+    , time_to_live: null
     })
     const view = createView(cache)
 
@@ -120,7 +156,8 @@ describe('DiskCacheView', () => {
     setRawItem(cache, {
       key: 'key'
     , value: Buffer.from('value')
-    , expiration_time: null
+    , updated_at: 0
+    , time_to_live: null
     })
     const view = createView(cache)
 
@@ -136,7 +173,8 @@ describe('DiskCacheView', () => {
       setRawItem(cache, {
         key: 'key'
       , value: Buffer.from('value')
-      , expiration_time: null
+      , updated_at: 0
+      , time_to_live: null
       })
       const view = createView(cache)
 
@@ -151,12 +189,14 @@ describe('DiskCacheView', () => {
       setRawItem(cache, {
         key: 'non-prefix-key'
       , value: Buffer.from('value')
-      , expiration_time: null
+      , updated_at: 0
+      , time_to_live: null
       })
       setRawItem(cache, {
         key: 'prefix-key'
       , value: Buffer.from('value')
-      , expiration_time: null
+      , updated_at: 0
+      , time_to_live: null
       })
       const view = createViewWithPrefix(cache, 'prefix-')
 

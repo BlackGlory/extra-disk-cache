@@ -3,7 +3,8 @@ import { DiskCache } from '@src/disk-cache'
 interface IRawItem {
   key: string
   value: Buffer
-  expiration_time: number | null
+  updated_at: number
+  time_to_live: number | null
 }
 
 export function setRawItem(cache: DiskCache, raw: IRawItem): void {
@@ -11,12 +12,14 @@ export function setRawItem(cache: DiskCache, raw: IRawItem): void {
     INSERT INTO cache(
                   key
                 , value
-                , expiration_time
+                , updated_at
+                , time_to_live
                 )
-         VALUES ($key, $value, $expiration_time)
+         VALUES ($key, $value, $updated_at, $time_to_live)
              ON CONFLICT(key)
              DO UPDATE SET value = $value
-                         , expiration_time = $expiration_time
+                         , updated_at = $updated_at
+                         , time_to_live = $time_to_live
   `).run(raw)
 }
 

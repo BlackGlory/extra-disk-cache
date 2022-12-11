@@ -2,11 +2,13 @@
 PRAGMA journal_mode = WAL;
 
 CREATE TABLE cache (
-  key             TEXT    NOT NULL UNIQUE
-, value           BLOB    NOT NULL
-, expiration_time INTEGER NULL -- 表示过期时间的JavaScript时间戳
+  key          TEXT    NOT NULL UNIQUE
+, value        BLOB    NOT NULL
+  -- 一些来自其他项目的需求需要知道缓存插入/更新的时间, 因此该列是不可删除的
+, updated_at   INTEGER NOT NULL
+, time_to_live INTEGER NULL
 ) STRICT;
 
 CREATE INDEX idx_cache_expiration_time
-          ON cache(expiration_time)
-       WHERE deletion_time IS NOT NULL;
+          ON cache(updated_at + time_to_live)
+       WHERE time_to_live IS NOT NULL;

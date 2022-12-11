@@ -1,10 +1,6 @@
 import { setRawItem, getRawItem, hasRawItem } from '@test/utils'
 import { DiskCache } from '@src/disk-cache'
-import {
-  DiskCacheWithCache
-, createCacheKey
-, CacheKeyType
-} from '@src/disk-cache-with-cache'
+import { DiskCacheWithCache } from '@src/disk-cache-with-cache'
 import { ExpirableMap } from '@blackglory/structures'
 import { toArray } from '@blackglory/prelude'
 import '@blackglory/jest-matchers'
@@ -16,7 +12,8 @@ describe('DiskCacheWithCache', () => {
       setRawItem(diskCache, {
         key: 'key'
       , value: Buffer.from('value')
-      , expiration_time: null
+      , updated_at: 0
+      , time_to_live: null
       })
       const memoryCache = createMemoryCache()
       const cache = new DiskCacheWithCache(diskCache, memoryCache)
@@ -25,7 +22,11 @@ describe('DiskCacheWithCache', () => {
 
       expect(result).toBe(true)
       expect(memoryCache.size).toBe(1)
-      expect(memoryCache.get(createCacheKey(CacheKeyType.Exist, 'key'))).toBe(true)
+      expect(memoryCache.get('key')).toStrictEqual({
+        value: Buffer.from('value')
+      , updatedAt: 0
+      , timeToLive: null
+      })
     })
 
     test('item does not exist', async () => {
@@ -37,7 +38,7 @@ describe('DiskCacheWithCache', () => {
 
       expect(result).toBe(false)
       expect(memoryCache.size).toBe(1)
-      expect(memoryCache.get(createCacheKey(CacheKeyType.Exist, 'key'))).toBe(false)
+      expect(memoryCache.get('key')).toBe(undefined)
     })
   })
 
@@ -48,22 +49,32 @@ describe('DiskCacheWithCache', () => {
       setRawItem(diskCache, {
         key: 'key'
       , value
-      , expiration_time: null
+      , updated_at: 0
+      , time_to_live: null
       })
       const memoryCache = createMemoryCache()
-      memoryCache.set(createCacheKey(CacheKeyType.Value, 'key'), value)
+      memoryCache.set('key', {
+        value
+      , updatedAt: 0
+      , timeToLive: null
+      })
       const cache = new DiskCacheWithCache(diskCache, memoryCache)
 
       setRawItem(diskCache, {
         key: 'key'
       , value: Buffer.from('new-value')
-      , expiration_time: null
+      , updated_at: 0
+      , time_to_live: null
       })
       const result = cache.get('key')
 
       expect(result).toStrictEqual(value)
       expect(memoryCache.size).toBe(1)
-      expect(memoryCache.get(createCacheKey(CacheKeyType.Value, 'key'))).toBe(value)
+      expect(memoryCache.get('key')).toStrictEqual({
+        value
+      , updatedAt: 0
+      , timeToLive: null
+      })
     })
 
     test('item does not exist', async () => {
@@ -75,51 +86,123 @@ describe('DiskCacheWithCache', () => {
 
       expect(result).toBeUndefined()
       expect(memoryCache.size).toBe(1)
-      expect(memoryCache.get(createCacheKey(CacheKeyType.Value, 'key'))).toBe(undefined)
+      expect(memoryCache.get('key')).toBe(false)
+    })
+  })
+
+  describe('getWithMetadata', () => {
+    test('item exists', async () => {
+      const diskCache = await DiskCache.create()
+      const value = Buffer.from('value')
+      setRawItem(diskCache, {
+        key: 'key'
+      , value
+      , updated_at: 0
+      , time_to_live: null
+      })
+      const memoryCache = createMemoryCache()
+      memoryCache.set('key', {
+        value
+      , updatedAt: 0
+      , timeToLive: null
+      })
+      const cache = new DiskCacheWithCache(diskCache, memoryCache)
+
+      setRawItem(diskCache, {
+        key: 'key'
+      , value: Buffer.from('new-value')
+      , updated_at: 0
+      , time_to_live: null
+      })
+      const result = cache.getWithMetadata('key')
+
+      expect(result).toStrictEqual({
+        value
+      , updatedAt: 0
+      , timeToLive: null
+      })
+      expect(memoryCache.size).toBe(1)
+      expect(memoryCache.get('key')).toStrictEqual({
+        value
+      , updatedAt: 0
+      , timeToLive: null
+      })
+    })
+
+    test('item does not exist', async () => {
+      const diskCache = await DiskCache.create()
+      const memoryCache = createMemoryCache()
+      const cache = new DiskCacheWithCache(diskCache, memoryCache)
+
+      const result = cache.getWithMetadata('key')
+
+      expect(result).toBeUndefined()
+      expect(memoryCache.size).toBe(1)
+      expect(memoryCache.get('key')).toBe(false)
     })
   })
 
   describe('set', () => {
     test('item exists', async () => {
-      const diskCache = await DiskCache.create()
-      const value = Buffer.from('value')
-      const memoryCache = createMemoryCache()
-      memoryCache.set(createCacheKey(CacheKeyType.Value, 'key'), value)
-      setRawItem(diskCache, {
-        key: 'key'
-      , value
-      , expiration_time: null
-      })
-      const cache = new DiskCacheWithCache(diskCache, memoryCache)
+      jest.useFakeTimers({ now: 1000 })
+      try {
+        const diskCache = await DiskCache.create()
+        const value = Buffer.from('value')
+        const memoryCache = createMemoryCache()
+        memoryCache.set('key', {
+          value
+        , updatedAt: 0
+        , timeToLive: null
+        })
+        setRawItem(diskCache, {
+          key: 'key'
+        , value
+        , updated_at: 0
+        , time_to_live: null
+        })
+        const cache = new DiskCacheWithCache(diskCache, memoryCache)
 
-      const newValue = Buffer.from('new value')
-      const result = cache.set('key', newValue)
+        const newValue = Buffer.from('new value')
+        const result = cache.set('key', newValue)
 
-      expect(result).toBeUndefined()
-      expect(getRawItem(diskCache, 'key')).toEqual({
-        key: 'key'
-      , value: newValue
-      , expiration_time: null
-      })
-      expect(memoryCache.size).toBe(0)
+        expect(result).toBeUndefined()
+        expect(getRawItem(diskCache, 'key')).toEqual({
+          key: 'key'
+        , value: newValue
+        , updated_at: 1000
+        , time_to_live: null
+        })
+        expect(memoryCache.size).toBe(0)
+      } finally {
+        jest.useRealTimers()
+      }
     })
 
     test('data does not exist', async () => {
-      const diskCache = await DiskCache.create()
-      const memoryCache = createMemoryCache()
-      memoryCache.set(createCacheKey(CacheKeyType.Value, 'key'), Buffer.from('value'))
-      const cache = new DiskCacheWithCache(diskCache, memoryCache)
+      jest.useFakeTimers({ now: 1000 })
+      try {
+        const diskCache = await DiskCache.create()
+        const memoryCache = createMemoryCache()
+        memoryCache.set('key', {
+          value: Buffer.from('value')
+        , updatedAt: 0
+        , timeToLive: null
+        })
+        const cache = new DiskCacheWithCache(diskCache, memoryCache)
 
-      const value = Buffer.from('value')
-      const result = cache.set('key', value)
+        const value = Buffer.from('value')
+        cache.set('key', value)
 
-      expect(result).toBeUndefined()
-      expect(getRawItem(diskCache, 'key')).toEqual({
-        key: 'key'
-      , value
-      , expiration_time: null
-      })
-      expect(memoryCache.size).toBe(0)
+        expect(getRawItem(diskCache, 'key')).toEqual({
+          key: 'key'
+        , value
+        , updated_at: 1000
+        , time_to_live: null
+        })
+        expect(memoryCache.size).toBe(0)
+      } finally {
+        jest.useRealTimers()
+      }
     })
   })
 
@@ -129,10 +212,15 @@ describe('DiskCacheWithCache', () => {
     setRawItem(diskCache, {
       key: 'key'
     , value
-    , expiration_time: null
+    , updated_at: 0
+    , time_to_live: null
     })
     const memoryCache = createMemoryCache()
-    memoryCache.set(createCacheKey(CacheKeyType.Exist, 'key'), Buffer.from('value'))
+    memoryCache.set('key', {
+      value: Buffer.from('value')
+    , updatedAt: 0
+    , timeToLive: null
+    })
     const cache = new DiskCacheWithCache(diskCache, memoryCache)
 
     const result = cache.delete('key')
@@ -147,10 +235,15 @@ describe('DiskCacheWithCache', () => {
     setRawItem(diskCache, {
       key: 'key'
     , value: Buffer.from('value')
-    , expiration_time: null
+    , updated_at: 0
+    , time_to_live: null
     })
     const memoryCache = createMemoryCache()
-    memoryCache.set(createCacheKey(CacheKeyType.Exist, 'key'), Buffer.from('value'))
+    memoryCache.set('key', {
+      value: Buffer.from('value')
+    , updatedAt: 0
+    , timeToLive: null
+    })
     const cache = new DiskCacheWithCache(diskCache, memoryCache)
 
     const result = cache.clear()
@@ -166,7 +259,8 @@ describe('DiskCacheWithCache', () => {
       setRawItem(diskCache, {
         key: 'key'
       , value: Buffer.from('value')
-      , expiration_time: null
+      , updated_at: 0
+      , time_to_live: null
       })
       const memoryCache = createMemoryCache()
       const cache = new DiskCacheWithCache(diskCache, memoryCache)
@@ -182,7 +276,8 @@ describe('DiskCacheWithCache', () => {
       setRawItem(diskCache, {
         key: 'key'
       , value: Buffer.from('value')
-      , expiration_time: null
+      , updated_at: 0
+      , time_to_live: null
       })
       const memoryCache = createMemoryCache()
       const cache = new DiskCacheWithCache(diskCache, memoryCache)
@@ -203,7 +298,8 @@ describe('DiskCacheWithCache', () => {
       setRawItem(diskCache, {
         key: 'key'
       , value: Buffer.from('value')
-      , expiration_time: null
+      , updated_at: 0
+      , time_to_live: null
       })
       const memoryCache = createMemoryCache()
       const cache = new DiskCacheWithCache(diskCache, memoryCache)
@@ -240,6 +336,15 @@ describe('DiskCacheWithCache', () => {
   })
 })
 
-function createMemoryCache(): ExpirableMap<string, Buffer | boolean | undefined> {
+function createMemoryCache(): ExpirableMap<
+  string
+, | {
+      value: Buffer
+      updatedAt: number
+      timeToLive: number | null
+    }
+  | false
+  | undefined
+> {
   return new ExpirableMap()
 }

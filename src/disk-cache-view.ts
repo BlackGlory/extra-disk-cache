@@ -26,6 +26,24 @@ export class DiskCacheView<K, V> {
     }
   }
 
+  getWithMetadata(key: K): {
+    value: V
+    updatedAt: number
+    timeToLive: number | null
+  } | undefined {
+    const result = this.cache.getWithMetadata(this.keyConverter.toString(key))
+
+    if (result) {
+      return {
+        value: this.valueConverter.fromBuffer(result.value)
+      , updatedAt: result.updatedAt
+      , timeToLive: result.timeToLive
+      }
+    } else {
+      return undefined
+    }
+  }
+
   set(
     key: K
   , value: V

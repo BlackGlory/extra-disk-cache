@@ -1,17 +1,31 @@
-import { isBoolean } from '@blackglory/prelude'
-import { withLazyStatic, lazyStatic } from 'extra-lazy'
+import { isUndefined, isntUndefined } from '@blackglory/prelude'
 import { DiskCache } from './disk-cache'
 
 export interface ICache {
-  set(key: string, value: Buffer | boolean | undefined, timeToLive?: number): void
-  get(key: string): Buffer | boolean | undefined
+  set(
+    key: string
+  , value:
+    | {
+        value: Buffer
+        updatedAt: number
+        timeToLive: number | null
+      }
+    | false
+    | undefined
+  , timeToLive?: number
+  ): void
+
+  get(key: string):
+  | {
+      value: Buffer
+      updatedAt: number
+      timeToLive: number | null
+    }
+  | false
+  | undefined
+
   delete(key: string): void
   clear(): void
-}
-
-export enum CacheKeyType {
-  Exist
-, Value
 }
 
 export class DiskCacheWithCache {
@@ -25,80 +39,77 @@ export class DiskCacheWithCache {
   }
 
   has(key: string): boolean {
-    const cacheKey = createCacheKey(CacheKeyType.Exist, key)
-    const result = this.memoryCache.get(cacheKey)
-    if (isBoolean(result)) {
-      return result
+    const result = this.memoryCache.get(key)
+    if (result === false) {
+      return false
+    } else if (isntUndefined(result)) {
+      return true
     } else {
-      const result = this.getDiskCacheRecord(key)
-      if (result) {
-        this.memoryCache.set(
-          cacheKey
-        , true
-        , result.expirationTime ?? undefined
-        )
-        return true
-      } else {
-        this.memoryCache.set(cacheKey, false)
+      const result = this.getWithMetadata(key)
+      if (isUndefined(result)) {
+        this.memoryCache.set(key, result)
         return false
+      } else {
+        this.memoryCache.set(key, result, result.timeToLive ?? undefined)
+        return true
       }
     }
   }
 
   get(key: string): Buffer | undefined {
-    const cacheKey = createCacheKey(CacheKeyType.Value, key)
-    const result = this.memoryCache.get(cacheKey)
-    if (result instanceof Buffer) {
-      return result
+    const result = this.memoryCache.get(key)
+    if (result === false) {
+      return undefined
+    } else if (isntUndefined(result)) {
+      return result.value
     } else {
-      const result = this.getDiskCacheRecord(key)
-      if (result) {
+      const result = this.diskCache.getWithMetadata(key)
+      if (isUndefined(result)) {
+        this.memoryCache.set(key, false)
+        return result
+      } else {
         this.memoryCache.set(
-          cacheKey
-        , result.value
-        , result.expirationTime ?? undefined
+          key
+        , result
+        , result.timeToLive ?? undefined
         )
         return result.value
+      }
+    }
+  }
+
+  getWithMetadata(key: string): {
+    value: Buffer
+    updatedAt: number
+    timeToLive: number | null
+  } | undefined {
+    const result = this.memoryCache.get(key)
+    if (result === false) {
+      return undefined
+    } else if (isntUndefined(result)) {
+      return result
+    } else {
+      const result = this.diskCache.getWithMetadata(key)
+      if (isUndefined(result)) {
+        this.memoryCache.set(key, false)
+        return result
       } else {
-        this.memoryCache.set(cacheKey, undefined)
+        this.memoryCache.set(key, result, result.timeToLive ?? undefined)
         return result
       }
     }
   }
 
-  private getDiskCacheRecord = withLazyStatic((key: string): {
-    value: Buffer
-    expirationTime: number | null
-  } | undefined => {
-    const row: {
-      value: Buffer
-      expiration_time: number | null
-    } | undefined = lazyStatic(() => this.diskCache._db.prepare(`
-      SELECT value
-           , expiration_time
-        FROM cache
-       WHERE key = $key
-    `), [this.diskCache._db]).get({ key })
+  set(key: string, value: Buffer, timeToLive: number | null = null): void {
+    this.diskCache.set(key, value, timeToLive)
 
-    return row
-         ? {
-             value: row.value
-           , expirationTime: row.expiration_time
-           }
-         : undefined
-  })
-
-  set(key: string, value: Buffer): void {
-    this.diskCache.set(key, value)
-
-    this.memoryCache.delete(createCacheKey(CacheKeyType.Value, key))
+    this.memoryCache.delete(key)
   }
 
   delete(key: string): void {
     this.diskCache.delete(key)
 
-    this.memoryCache.delete(createCacheKey(CacheKeyType.Exist, key))
-    this.memoryCache.delete(createCacheKey(CacheKeyType.Value, key))
+    this.memoryCache.delete(key)
   }
 
   clear(): void {
@@ -110,8 +121,4 @@ export class DiskCacheWithCache {
   keys(): IterableIterator<string> {
     return this.diskCache.keys()
   }
-}
-
-export function createCacheKey(type: CacheKeyType, key: string): string {
-  return JSON.stringify([type, key])
 }

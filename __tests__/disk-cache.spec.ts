@@ -4,7 +4,7 @@ import { delay } from 'extra-promise'
 import { toArray } from '@blackglory/prelude'
 import '@blackglory/jest-matchers'
 
-const TIME_ERROR = 1
+const TIME_ERROR = 5
 
 describe('DiskCache', () => {
   describe('cache expiration', () => {
@@ -56,7 +56,8 @@ describe('DiskCache', () => {
       setRawItem(cache, {
         key: 'key'
       , value: Buffer.from('value')
-      , expiration_time: 0
+      , updated_at: 0
+      , time_to_live: null
       })
 
       const result = cache.has('key')
@@ -80,7 +81,8 @@ describe('DiskCache', () => {
       setRawItem(cache, {
         key: 'key'
       , value
-      , expiration_time: 0
+      , updated_at: 0
+      , time_to_live: null
       })
 
       const result = cache.get('key')
@@ -97,6 +99,35 @@ describe('DiskCache', () => {
     })
   })
 
+  describe('getWithMetadata', () => {
+    test('item exists', async () => {
+      const cache = await DiskCache.create()
+      const value = Buffer.from('value')
+      setRawItem(cache, {
+        key: 'key'
+      , value
+      , updated_at: 0
+      , time_to_live: null
+      })
+
+      const result = cache.getWithMetadata('key')
+
+      expect(result).toStrictEqual({
+        value
+      , updatedAt: 0
+      , timeToLive: null
+      })
+    })
+
+    test('item does not exist', async () => {
+      const cache = await DiskCache.create()
+
+      const result = cache.getWithMetadata('key')
+
+      expect(result).toBeUndefined()
+    })
+  })
+
   describe('set', () => {
     test('item exists', async () => {
       jest.useFakeTimers({ now: 1000 })
@@ -106,7 +137,8 @@ describe('DiskCache', () => {
         setRawItem(cache, {
           key: 'key'
         , value
-        , expiration_time: null
+        , updated_at: 0
+        , time_to_live: null
         })
         const newValue = Buffer.from('new value')
 
@@ -116,7 +148,8 @@ describe('DiskCache', () => {
         expect(item).toEqual({
           key: 'key'
         , value: newValue
-        , expiration_time: 4600
+        , updated_at: 1000
+        , time_to_live: 3600
         })
       } finally {
         jest.useRealTimers()
@@ -135,7 +168,8 @@ describe('DiskCache', () => {
         expect(item).toEqual({
           key: 'key'
         , value
-        , expiration_time: 4600
+        , updated_at: 1000
+        , time_to_live: 3600
         })
       } finally {
         jest.useRealTimers()
@@ -149,7 +183,8 @@ describe('DiskCache', () => {
     setRawItem(cache, {
       key: 'key'
     , value
-    , expiration_time: null
+    , updated_at: 0
+    , time_to_live: null
     })
 
     const result = cache.delete('key')
@@ -163,7 +198,8 @@ describe('DiskCache', () => {
     setRawItem(cache, {
       key: 'key'
     , value: Buffer.from('value')
-    , expiration_time: null
+    , updated_at: 0
+    , time_to_live: null
     })
 
     const result = cache.clear()
@@ -178,7 +214,8 @@ describe('DiskCache', () => {
       setRawItem(cache, {
         key: 'key'
       , value: Buffer.from('value')
-      , expiration_time: null
+      , updated_at: 0
+      , time_to_live: null
       })
 
       const iter = cache.keys()
@@ -192,7 +229,8 @@ describe('DiskCache', () => {
       setRawItem(cache, {
         key: 'key'
       , value: Buffer.from('value')
-      , expiration_time: null
+      , updated_at: 0
+      , time_to_live: null
       })
 
       const iter = cache.keys()
@@ -211,7 +249,8 @@ describe('DiskCache', () => {
       setRawItem(cache, {
         key: 'key'
       , value: Buffer.from('value')
-      , expiration_time: null
+      , updated_at: 0
+      , time_to_live: null
       })
 
       const iter = cache.keys()
@@ -248,17 +287,20 @@ describe('DiskCache', () => {
       setRawItem(cache, {
         key: '#1'
       , value
-      , expiration_time: null
+      , updated_at: 0
+      , time_to_live: null
       })
       setRawItem(cache, {
         key: '#2'
       , value
-      , expiration_time: 100
+      , updated_at: 0
+      , time_to_live: 100
       })
       setRawItem(cache, {
         key: '#3'
       , value
-      , expiration_time: 300
+      , updated_at: 0
+      , time_to_live: 300
       })
 
       cache._clearExpiredItems(200)
