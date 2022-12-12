@@ -145,7 +145,6 @@ interface ICache {
         timeToLive: number | null
       }
     | false
-    | undefined
   , timeToLive?: number
   ): void
 

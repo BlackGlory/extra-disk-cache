@@ -38,7 +38,7 @@ describe('DiskCacheWithCache', () => {
 
       expect(result).toBe(false)
       expect(memoryCache.size).toBe(1)
-      expect(memoryCache.get('key')).toBe(undefined)
+      expect(memoryCache.get('key')).toBe(false)
     })
   })
 

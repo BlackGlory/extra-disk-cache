@@ -11,7 +11,6 @@ export interface ICache {
         timeToLive: number | null
       }
     | false
-    | undefined
   , timeToLive?: number
   ): void
 
@@ -47,7 +46,7 @@ export class DiskCacheWithCache {
     } else {
       const result = this.getWithMetadata(key)
       if (isUndefined(result)) {
-        this.memoryCache.set(key, result)
+        this.memoryCache.set(key, false)
         return false
       } else {
         this.memoryCache.set(key, result, result.timeToLive ?? undefined)
