@@ -2,7 +2,6 @@ import { setRawItem, getRawItem, hasRawItem } from '@test/utils'
 import { DiskCache } from '@src/disk-cache'
 import { delay } from 'extra-promise'
 import { toArray } from '@blackglory/prelude'
-import '@blackglory/jest-matchers'
 
 const TIME_ERROR = 5
 

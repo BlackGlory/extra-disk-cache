@@ -3,7 +3,6 @@ import { DiskCacheView } from '@src/disk-cache-view'
 import { DiskCache } from '@src/disk-cache'
 import { toArray } from '@blackglory/prelude'
 import { PassthroughKeyConverter, PrefixKeyConverter } from '@src/converters'
-import '@blackglory/jest-matchers'
 
 describe('DiskCacheView', () => {
   describe('has', () => {

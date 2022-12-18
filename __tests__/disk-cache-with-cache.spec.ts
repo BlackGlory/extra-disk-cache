@@ -3,7 +3,6 @@ import { DiskCache } from '@src/disk-cache'
 import { DiskCacheWithCache } from '@src/disk-cache-with-cache'
 import { ExpirableMap } from '@blackglory/structures'
 import { toArray } from '@blackglory/prelude'
-import '@blackglory/jest-matchers'
 
 describe('DiskCacheWithCache', () => {
   describe('has', () => {

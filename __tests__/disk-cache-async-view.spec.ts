@@ -2,7 +2,6 @@ import { setRawItem, getRawItem, hasRawItem } from '@test/utils'
 import { DiskCacheAsyncView } from '@src/disk-cache-async-view'
 import { DiskCache } from '@src/disk-cache'
 import { toArrayAsync } from '@blackglory/prelude'
-import '@blackglory/jest-matchers'
 import { PassthroughKeyConverter, PrefixKeyAsyncConverter } from '@src/converters'
 
 describe('DiskCacheAsyncView', () => {
