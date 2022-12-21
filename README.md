@@ -231,23 +231,13 @@ class LZ4ValueAsyncConverter<T> implements IValueAsyncConverter<T> {
 }
 ```
 
-#### ZstandardValueConverter
-```ts
-class ZstandardValueConverter<T> implements IValueConverter<T>, IValueAsyncConverter<T> {
-  static create<T>(
-    valueConverter: IValueConverter<T>
-  , level: number
-  ): Promise<ZstandardValueConverter<T>>
-}
-```
-
 #### ZstandardValueAsyncConverter
 ```ts
 class ZstandardValueAsyncConverter<T> implements IValueAsyncConverter<T> {
-  static create<T>(
+  constructor(
     valueConverter: IValueConverter<T> | IValueAsyncConverter<T>
   , level: number
-  ): Promise<ZstandardValueAsyncConverter<T>>
+  )
 
   toBuffer(value: T): Promise<Buffer>
   fromBuffer(value: Buffer): Promise<T>

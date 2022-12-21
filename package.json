@@ -67,7 +67,7 @@
     "@blackglory/better-sqlite3-migrations": "^0.1.16",
     "@blackglory/prelude": "^0.1.8",
     "@blackglory/types": "^1.4.0",
-    "@bokuweb/zstd-wasm": "^0.0.17",
+    "@mongodb-js/zstd": "^1.0.0",
     "better-sqlite3": "^8.0.1",
     "extra-filesystem": "^0.4.8",
     "extra-lazy": "^1.3.1",
