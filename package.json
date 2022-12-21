@@ -7,8 +7,8 @@
     "lib",
     "migrations"
   ],
-  "main": "lib/es2018/index.js",
-  "types": "lib/es2018/index.d.ts",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "repository": "git@github.com:BlackGlory/extra-disk-cache.git",
   "author": "BlackGlory <woshenmedoubuzhidao@blackglory.me>",
   "license": "MIT",
@@ -24,11 +24,7 @@
     "test:coverage": "jest --runInBand --coverage --config jest.config.js",
     "prepublishOnly": "run-s prepare clean build",
     "clean": "rimraf lib",
-    "build": "run-p build:*",
-    "build:es2015": "run-s build:es2015:*",
-    "build:es2015:compile": "tsc --project tsconfig.build.json --target es2015 --outDir lib/es2015",
-    "build:es2018": "run-s build:es2018:*",
-    "build:es2018:compile": "tsc --project tsconfig.build.json --target es2018 --outDir lib/es2018",
+    "build": "tsc --project tsconfig.build.json --target es2018 --outDir lib",
     "bench": "ts-node --require tsconfig-paths/register benches/index.ts",
     "release": "standard-version"
   },
