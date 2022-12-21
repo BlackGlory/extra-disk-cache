@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.11.0](https://github.com/BlackGlory/extra-disk-cache/compare/v0.10.1...v0.11.0) (2022-12-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* - Removed `ZstandardValueConverter`
+- Rewritten `ZstandardValueAsyncConverter`
+
+* replace `@bokuweb/zstd-wasm` with `@mongodb-js/zstd` ([60e01f2](https://github.com/BlackGlory/extra-disk-cache/commit/60e01f2c995d64a8d62e5e0042908186c49601d2))
+
 ### [0.10.1](https://github.com/BlackGlory/extra-disk-cache/compare/v0.10.0...v0.10.1) (2022-12-12)
 
 
