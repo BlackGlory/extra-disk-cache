@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.11.1](https://github.com/BlackGlory/extra-disk-cache/compare/v0.11.0...v0.11.1) (2022-12-21)
+
+
+### Bug Fixes
+
+* the `engines` field ([fec6f12](https://github.com/BlackGlory/extra-disk-cache/commit/fec6f128dbdf74aff70fa1c63942c8a2f2c07605))
+
 ## [0.11.0](https://github.com/BlackGlory/extra-disk-cache/compare/v0.10.1...v0.11.0) (2022-12-21)
 
 
