@@ -71,7 +71,30 @@ go(async () => {
     }
   })
 
-  benchmark.addCase('ExtraDiskStore (write)', async () => {
+  benchmark.addCase('ExtraDiskStore (write, non-concurrent)', async () => {
+    const store = new DiskStore()
+    const view = new DiskStoreView(
+      store
+    , new StoreIndexKeyConverter()
+    , new StoreJSONValueConverter()
+    )
+
+    return {
+      beforeEach() {
+        store.clear()
+      }
+    , async iterate() {
+        for (let i = 100; i--;) {
+          await view.set(i, i)
+        }
+      }
+    , async afterAll() {
+        await store.close()
+      }
+    }
+  })
+
+  benchmark.addCase('ExtraDiskStore (write, concurrent)', async () => {
     const store = new DiskStore()
     const view = new DiskStoreView(
       store
