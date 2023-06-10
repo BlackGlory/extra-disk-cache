@@ -5,6 +5,7 @@
   "keywords": [],
   "files": [
     "lib",
+    "src",
     "migrations"
   ],
   "main": "lib/index.js",
