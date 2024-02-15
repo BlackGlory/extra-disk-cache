@@ -1,5 +1,5 @@
 import * as msgpack from 'msgpack-lite'
-import { IValueConverter, IValueAsyncConverter } from '@src/types'
+import { IValueConverter, IValueAsyncConverter } from '@src/types.js'
 
 /**
  * @deprecated

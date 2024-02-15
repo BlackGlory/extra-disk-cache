@@ -1,8 +1,9 @@
-import { setRawItem, getRawItem, hasRawItem } from '@test/utils'
-import { DiskCacheView } from '@src/disk-cache-view'
-import { DiskCache } from '@src/disk-cache'
+import { describe, test, expect, vi } from 'vitest'
+import { setRawItem, getRawItem, hasRawItem } from '@test/utils.js'
+import { DiskCacheView } from '@src/disk-cache-view.js'
+import { DiskCache } from '@src/disk-cache.js'
 import { toArray } from '@blackglory/prelude'
-import { PassthroughKeyConverter, PrefixKeyConverter } from '@src/converters'
+import { PassthroughKeyConverter, PrefixKeyConverter } from '@src/converters/index.js'
 
 describe('DiskCacheView', () => {
   describe('has', () => {
@@ -89,7 +90,7 @@ describe('DiskCacheView', () => {
 
   describe('set', () => {
     test('item exists', async () => {
-      jest.useFakeTimers({ now: 1000 })
+      vi.useFakeTimers({ now: 1000 })
       try {
         const cache = await DiskCache.create()
         setRawItem(cache, {
@@ -110,12 +111,12 @@ describe('DiskCacheView', () => {
         , time_to_live: 3600
         })
       } finally {
-        jest.useRealTimers()
+        vi.useRealTimers()
       }
     })
 
     test('data does not exist', async () => {
-      jest.useFakeTimers({ now: 1000 })
+      vi.useFakeTimers({ now: 1000 })
       try {
         const cache = await DiskCache.create()
         const view = createView(cache)
@@ -129,7 +130,7 @@ describe('DiskCacheView', () => {
         , time_to_live: 3600
         })
       } finally {
-        jest.useRealTimers()
+        vi.useRealTimers()
       }
     })
   })

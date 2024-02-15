@@ -1,5 +1,6 @@
-import { setRawItem, getRawItem, hasRawItem } from '@test/utils'
-import { DiskCache } from '@src/disk-cache'
+import { describe, test, expect, vi } from 'vitest'
+import { setRawItem, getRawItem, hasRawItem } from '@test/utils.js'
+import { DiskCache } from '@src/disk-cache.js'
 import { delay } from 'extra-promise'
 import { toArray } from '@blackglory/prelude'
 
@@ -129,7 +130,7 @@ describe('DiskCache', () => {
 
   describe('set', () => {
     test('item exists', async () => {
-      jest.useFakeTimers({ now: 1000 })
+      vi.useFakeTimers({ now: 1000 })
       try {
         const cache = await DiskCache.create()
         const value = Buffer.from('value')
@@ -151,12 +152,12 @@ describe('DiskCache', () => {
         , time_to_live: 3600
         })
       } finally {
-        jest.useRealTimers()
+        vi.useRealTimers()
       }
     })
 
     test('data does not exist', async () => {
-      jest.useFakeTimers({ now: 1000 })
+      vi.useFakeTimers({ now: 1000 })
       try {
         const cache = await DiskCache.create()
         const value = Buffer.from('value')
@@ -171,7 +172,7 @@ describe('DiskCache', () => {
         , time_to_live: 3600
         })
       } finally {
-        jest.useRealTimers()
+        vi.useRealTimers()
       }
     })
   })
@@ -279,7 +280,7 @@ describe('DiskCache', () => {
   })
 
   test('clearExpiredItems', async () => {
-    jest.useFakeTimers({ now: 0 })
+    vi.useFakeTimers({ now: 0 })
     try {
       const cache = await DiskCache.create()
       const value = Buffer.from('value')
@@ -308,7 +309,7 @@ describe('DiskCache', () => {
       expect(hasRawItem(cache, '#2')).toBeFalsy()
       expect(hasRawItem(cache, '#3')).toBeTruthy()
     } finally {
-      jest.useRealTimers()
+      vi.useRealTimers()
     }
   })
 })

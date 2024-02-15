@@ -1,6 +1,6 @@
-import { DiskCache } from '@src/disk-cache'
-import { DiskCacheWithCache } from '@src/disk-cache-with-cache'
-import { IKeyAsyncConverter, IValueAsyncConverter } from '@src/types'
+import { DiskCache } from '@src/disk-cache.js'
+import { DiskCacheWithCache } from '@src/disk-cache-with-cache.js'
+import { IKeyAsyncConverter, IValueAsyncConverter } from '@src/types.js'
 import { mapAsync, filterAsync } from 'iterable-operator'
 import { pipe, isntUndefined } from 'extra-utils'
 
@@ -72,7 +72,7 @@ export class DiskCacheAsyncView<K, V> {
     return pipe(
       this.cache.keys()
     , iter => mapAsync(iter, key => this.keyConverter.fromString(key))
-    , iter => filterAsync(iter, isntUndefined)
+    , iter => filterAsync<Awaited<K> | undefined, Awaited<Awaited<K>>>(iter, isntUndefined)
     )
   }
 }

@@ -1,5 +1,6 @@
-import { PrefixKeyConverter, PrefixKeyAsyncConverter } from '@converters/prefix-key-converter'
-import { PassthroughKeyConverter } from '@converters/passthrough-key-converter'
+import { describe, test, expect } from 'vitest'
+import { PrefixKeyConverter, PrefixKeyAsyncConverter } from '@converters/prefix-key-converter.js'
+import { PassthroughKeyConverter } from '@converters/passthrough-key-converter.js'
 
 describe('PrefixKeyConverter', () => {
   test('toString & fromString', () => {

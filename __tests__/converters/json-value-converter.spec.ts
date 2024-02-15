@@ -1,4 +1,5 @@
-import { JSONValueConverter } from '@converters/json-value-converter'
+import { describe, test, expect } from 'vitest'
+import { JSONValueConverter } from '@converters/json-value-converter.js'
 
 describe('JSONValueConverter', () => {
   test('toBuffer & fromBuffer', () => {

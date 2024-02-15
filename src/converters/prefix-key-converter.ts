@@ -1,4 +1,4 @@
-import { IKeyConverter, IKeyAsyncConverter } from '@src/types'
+import { IKeyConverter, IKeyAsyncConverter } from '@src/types.js'
 
 export class PrefixKeyConverter<T> implements IKeyConverter<T>, IKeyAsyncConverter<T> {
   constructor(

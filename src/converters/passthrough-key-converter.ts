@@ -1,4 +1,4 @@
-import { IKeyConverter, IKeyAsyncConverter } from '@src/types'
+import { IKeyConverter, IKeyAsyncConverter } from '@src/types.js'
 
 export class PassthroughKeyConverter implements IKeyConverter<string>, IKeyAsyncConverter<string> {
   toString(value: string): string {

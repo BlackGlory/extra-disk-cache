@@ -1,4 +1,4 @@
-import { DiskCache } from '@src/disk-cache'
+import { DiskCache } from '@src/disk-cache.js'
 
 interface IRawItem {
   key: string
@@ -28,16 +28,17 @@ export function getRawItem(cache: DiskCache, key: string): IRawItem {
     SELECT *
       FROM cache
      WHERE key = $key
-  `).get({ key })
+  `).get({ key }) as IRawItem
 }
 
 export function hasRawItem(cache: DiskCache, key: string): boolean {
-  const result: { item_exists: 1 | 0 } = cache._db.prepare(`
+  const result = cache._db.prepare(`
     SELECT EXISTS(
              SELECT *
                FROM cache
               WHERE key = $key
            ) AS item_exists
-  `).get({ key })
+  `).get({ key }) as { item_exists: 1 | 0 }
+
   return result.item_exists === 1
 }

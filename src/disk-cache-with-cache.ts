@@ -1,5 +1,5 @@
 import { isUndefined, isntUndefined } from '@blackglory/prelude'
-import { DiskCache } from './disk-cache'
+import { DiskCache } from './disk-cache.js'
 
 export interface ICache {
   set(

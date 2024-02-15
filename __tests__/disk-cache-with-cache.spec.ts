@@ -1,6 +1,7 @@
-import { setRawItem, getRawItem, hasRawItem } from '@test/utils'
-import { DiskCache } from '@src/disk-cache'
-import { DiskCacheWithCache } from '@src/disk-cache-with-cache'
+import { describe, test, expect, vi } from 'vitest'
+import { setRawItem, getRawItem, hasRawItem } from '@test/utils.js'
+import { DiskCache } from '@src/disk-cache.js'
+import { DiskCacheWithCache } from '@src/disk-cache-with-cache.js'
 import { ExpirableMap } from '@blackglory/structures'
 import { toArray } from '@blackglory/prelude'
 
@@ -143,7 +144,7 @@ describe('DiskCacheWithCache', () => {
 
   describe('set', () => {
     test('item exists', async () => {
-      jest.useFakeTimers({ now: 1000 })
+      vi.useFakeTimers({ now: 1000 })
       try {
         const diskCache = await DiskCache.create()
         const value = Buffer.from('value')
@@ -173,12 +174,12 @@ describe('DiskCacheWithCache', () => {
         })
         expect(memoryCache.size).toBe(0)
       } finally {
-        jest.useRealTimers()
+        vi.useRealTimers()
       }
     })
 
     test('data does not exist', async () => {
-      jest.useFakeTimers({ now: 1000 })
+      vi.useFakeTimers({ now: 1000 })
       try {
         const diskCache = await DiskCache.create()
         const memoryCache = createMemoryCache()
@@ -200,7 +201,7 @@ describe('DiskCacheWithCache', () => {
         })
         expect(memoryCache.size).toBe(0)
       } finally {
-        jest.useRealTimers()
+        vi.useRealTimers()
       }
     })
   })

@@ -1,5 +1,5 @@
 import * as zstd from '@mongodb-js/zstd'
-import { IValueConverter, IValueAsyncConverter } from '@src/types'
+import { IValueConverter, IValueAsyncConverter } from '@src/types.js'
 
 export class ZstandardValueAsyncConverter<T> implements IValueAsyncConverter<T> {
   constructor(

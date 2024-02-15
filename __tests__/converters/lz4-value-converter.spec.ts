@@ -1,5 +1,6 @@
-import { LZ4ValueConverter, LZ4ValueAsyncConverter } from '@converters/lz4-value-converter'
-import { JSONValueConverter } from '@converters/json-value-converter'
+import { describe, test, expect } from 'vitest'
+import { LZ4ValueConverter, LZ4ValueAsyncConverter } from '@converters/lz4-value-converter.js'
+import { JSONValueConverter } from '@converters/json-value-converter.js'
 
 describe('LZ4ValueConvertter', () => {
   test('toBuffer & fromBuffer', () => {

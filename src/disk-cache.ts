@@ -78,23 +78,23 @@ export class DiskCache {
   }
 
   has = withLazyStatic((key: string): boolean => {
-    const row: { item_exists: 1 | 0 } = lazyStatic(() => this._db.prepare(`
+    const row = lazyStatic(() => this._db.prepare(`
       SELECT EXISTS(
                SELECT *
                  FROM cache
                 WHERE key = $key
              ) AS item_exists
-    `), [this._db]).get({ key })
+    `), [this._db]).get({ key }) as { item_exists: 1 | 0 }
 
     return row.item_exists === 1
   })
 
   get = withLazyStatic((key: string): Buffer | undefined => {
-    const row: { value: Buffer } | undefined = lazyStatic(() => this._db.prepare(`
+    const row = lazyStatic(() => this._db.prepare(`
       SELECT value
         FROM cache
        WHERE key = $key
-    `), [this._db]).get({ key })
+    `), [this._db]).get({ key }) as { value: Buffer } | undefined
 
     return row?.value
   })
@@ -104,17 +104,17 @@ export class DiskCache {
     updatedAt: number
     timeToLive: number | null
   } | undefined => {
-    const row: {
-      value: Buffer
-      updated_at: number
-      time_to_live: number | null
-    } | undefined = lazyStatic(() => this._db.prepare(`
+    const row = lazyStatic(() => this._db.prepare(`
       SELECT value
            , updated_at
            , time_to_live
         FROM cache
        WHERE key = $key
-    `), [this._db]).get({ key })
+    `), [this._db]).get({ key }) as {
+      value: Buffer
+      updated_at: number
+      time_to_live: number | null
+    } | undefined
 
     if (row) {
       return {
@@ -196,10 +196,10 @@ export class DiskCache {
   })
 
   keys = withLazyStatic((): IterableIterator<string> => {
-    const iter: IterableIterator<{ key: string }> = lazyStatic(() => this._db.prepare(`
+    const iter = lazyStatic(() => this._db.prepare(`
       SELECT key
         FROM cache
-    `), [this._db]).iterate()
+    `), [this._db]).iterate() as IterableIterator<{ key: string }>
 
     return Iter.map(iter, ({ key }) => key)
   })
@@ -214,14 +214,14 @@ export class DiskCache {
   })
 
   private getMinimalExpirationTime = withLazyStatic((): number | undefined => {
-    const row: { expiration_time: number } | undefined = lazyStatic(() => this._db.prepare(`
+    const row = lazyStatic(() => this._db.prepare(`
       SELECT updated_at + time_to_live AS expiration_time
         FROM cache
        WHERE time_to_live IS NOT NULL
        ORDER BY updated_at + time_to_live ASC
        LIMIT 1
     `), [this._db])
-      .get()
+      .get() as { expiration_time: number } | undefined
 
     return row?.expiration_time
   })

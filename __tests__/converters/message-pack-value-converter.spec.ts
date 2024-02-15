@@ -1,4 +1,5 @@
-import { MessagePackValueConverter } from '@converters/message-pack-value-converter'
+import { describe, test, expect } from 'vitest'
+import { MessagePackValueConverter } from '@converters/message-pack-value-converter.js'
 
 describe('MessagePackValueConverter', () => {
   test('toBuffer & fromBuffer', () => {

@@ -1,4 +1,5 @@
-import { PassthroughValueConverter } from '@converters/passthrough-value-converter'
+import { describe, test, expect } from 'vitest'
+import { PassthroughValueConverter } from '@converters/passthrough-value-converter.js'
 
 describe('PassthroughValueConveter', () => {
   test('toBuffer & fromBuffer', () => {

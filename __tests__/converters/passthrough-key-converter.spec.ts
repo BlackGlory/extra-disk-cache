@@ -1,4 +1,5 @@
-import { PassthroughKeyConverter } from '@converters/passthrough-key-converter'
+import { describe, test, expect } from 'vitest'
+import { PassthroughKeyConverter } from '@converters/passthrough-key-converter.js'
 
 describe('PassthroughKeyConverter', () => {
   test('toString & fromString', () => {
