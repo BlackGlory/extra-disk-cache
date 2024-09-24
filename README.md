@@ -25,6 +25,7 @@ class DiskCache {
   static create(filename?: string): Promise<DiskCache>
 
   close(): void
+
   has(key: string): boolean
   get(key: string): Buffer | undefined
   getWithMetadata(key: string): {
@@ -32,6 +33,7 @@ class DiskCache {
     updatedAt: number
     timeToLive: number | null
   } | undefined
+
   set(
     key: string
   , value: Buffer
@@ -42,6 +44,54 @@ class DiskCache {
      */
   , timeToLive: number | null = null
   ): void
+
+  delete(key: string): void
+  clear(): void
+
+  keys(): IterableIterator<string>
+}
+```
+
+### DiskCacheWithCache
+```ts
+interface ICache {
+  set(
+    key: string
+  , value:
+    | {
+        value: Buffer
+        updatedAt: number
+        timeToLive: number | null
+      }
+    | false
+  , timeToLive?: number
+  ): void
+
+  get(key: string):
+  | {
+      value: Buffer
+      updatedAt: number
+      timeToLive: number | null
+    }
+  | false
+  | undefined
+
+  delete(key: string): void
+  clear(): void
+}
+
+class DiskCacheWithCache {
+  constructor(diskCache: DiskCache, memoryCache: ICache)
+
+  close(): void
+  has(key: string): boolean
+  get(key: string): Buffer | undefined
+  getWithMetadata(key: string): {
+    value: Buffer
+    updatedAt: number
+    timeToLive: number | null
+  } | undefined
+  set(key: string, value: Buffer, timeToLive: number | null = null): void
   delete(key: string): void
   clear(): void
   keys(): IterableIterator<string>
@@ -130,52 +180,6 @@ class DiskCacheAsyncView<K, V> {
   delete(key: K): Promise<void>
   clear(): void
   keys(): AsyncIterableIterator<K>
-}
-```
-
-### DiskCacheWithCache
-```ts
-interface ICache {
-  set(
-    key: string
-  , value:
-    | {
-        value: Buffer
-        updatedAt: number
-        timeToLive: number | null
-      }
-    | false
-  , timeToLive?: number
-  ): void
-
-  get(key: string):
-  | {
-      value: Buffer
-      updatedAt: number
-      timeToLive: number | null
-    }
-  | false
-  | undefined
-
-  delete(key: string): void
-  clear(): void
-}
-
-class DiskCacheWithCache {
-  constructor(diskCache: DiskCache, memoryCache: ICache)
-
-  close(): void
-  has(key: string): boolean
-  get(key: string): Buffer | undefined
-  getWithMetadata(key: string): {
-    value: Buffer
-    updatedAt: number
-    timeToLive: number | null
-  } | undefined
-  set(key: string, value: Buffer, timeToLive: number | null = null): void
-  delete(key: string): void
-  clear(): void
-  keys(): IterableIterator<string>
 }
 ```
 
