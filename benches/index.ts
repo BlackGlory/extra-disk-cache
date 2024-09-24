@@ -7,7 +7,7 @@ import {
 , DiskCacheWithCache
 , IndexKeyConverter as CacheIndexKeyConverter
 , JSONValueConverter as CacheJSONValueConverter
-} from '..'
+} from '../lib/index.js'
 import {
   DiskStore
 , DiskStoreView
