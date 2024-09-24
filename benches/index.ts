@@ -5,27 +5,21 @@ import {
   DiskCache
 , DiskCacheView
 , DiskCacheWithCache
-, IndexKeyConverter as CacheIndexKeyConverter
-, JSONValueConverter as CacheJSONValueConverter
+, IndexKeyConverter
+, JSONValueConverter
 } from '../lib/index.js'
-import {
-  DiskStore
-, DiskStoreView
-, IndexKeyConverter as StoreIndexKeyConverter
-, JSONValueConverter as StoreJSONValueConverter
-} from 'extra-disk-store'
 import { createTempName, remove } from 'extra-filesystem'
 
 const benchmark = new Benchmark('I/O performance')
 
 go(async () => {
-  benchmark.addCase('ExtraDiskCache (write)', async () => {
+  benchmark.addCase('DiskCache (write)', async () => {
     const filename = await createTempName()
     const cache = await DiskCache.create(filename)
     const view = new DiskCacheView(
       cache
-    , new CacheIndexKeyConverter()
-    , new CacheJSONValueConverter()
+    , new IndexKeyConverter()
+    , new JSONValueConverter()
     )
 
     return {
@@ -44,15 +38,15 @@ go(async () => {
     }
   })
 
-  benchmark.addCase('ExtraDiskCacheWithCache (write)', async () => {
+  benchmark.addCase('DiskCacheWithCache (write)', async () => {
     const filename = await createTempName()
     const diskCache = await DiskCache.create(filename)
     const memoryCache = new TLRUMap<string, any>(100)
     const cache = new DiskCacheWithCache(diskCache, memoryCache)
     const view = new DiskCacheView(
       cache
-    , new CacheIndexKeyConverter()
-    , new CacheJSONValueConverter()
+    , new IndexKeyConverter()
+    , new JSONValueConverter()
     )
 
     return {
@@ -71,61 +65,13 @@ go(async () => {
     }
   })
 
-  benchmark.addCase('ExtraDiskStore (write, non-concurrent)', async () => {
-    const store = new DiskStore()
-    const view = new DiskStoreView(
-      store
-    , new StoreIndexKeyConverter()
-    , new StoreJSONValueConverter()
-    )
-
-    return {
-      beforeEach() {
-        store.clear()
-      }
-    , async iterate() {
-        for (let i = 100; i--;) {
-          await view.set(i, i)
-        }
-      }
-    , async afterAll() {
-        await store.close()
-      }
-    }
-  })
-
-  benchmark.addCase('ExtraDiskStore (write, concurrent)', async () => {
-    const store = new DiskStore()
-    const view = new DiskStoreView(
-      store
-    , new StoreIndexKeyConverter()
-    , new StoreJSONValueConverter()
-    )
-
-    return {
-      beforeEach() {
-        store.clear()
-      }
-    , async iterate() {
-        const promises: Array<Promise<unknown>> = []
-        for (let i = 100; i--;) {
-          promises.push(view.set(i, i))
-        }
-        await Promise.all(promises)
-      }
-    , async afterAll() {
-        await store.close()
-      }
-    }
-  })
-
-  benchmark.addCase('ExtraDiskCache (overwrite)', async () => {
+  benchmark.addCase('DiskCache (overwrite)', async () => {
     const filename = await createTempName()
     const cache = await DiskCache.create(filename)
     const view = new DiskCacheView(
       cache
-    , new CacheIndexKeyConverter()
-    , new CacheJSONValueConverter()
+    , new IndexKeyConverter()
+    , new JSONValueConverter()
     )
     for (let i = 100; i--;) {
       view.set(i, i)
@@ -144,15 +90,15 @@ go(async () => {
     }
   })
 
-  benchmark.addCase('ExtraDiskCacheWithCache (overwrite)', async () => {
+  benchmark.addCase('DiskCacheWithCache (overwrite)', async () => {
     const filename = await createTempName()
     const diskCache = await DiskCache.create(filename)
     const memoryCache = new TLRUMap<string, any>(100)
     const cache = new DiskCacheWithCache(diskCache, memoryCache)
     const view = new DiskCacheView(
       cache
-    , new CacheIndexKeyConverter()
-    , new CacheJSONValueConverter()
+    , new IndexKeyConverter()
+    , new JSONValueConverter()
     )
     for (let i = 100; i--;) {
       view.set(i, i)
@@ -171,39 +117,13 @@ go(async () => {
     }
   })
 
-  benchmark.addCase('ExtraDiskStore (overwrite)', async () => {
-    const store = new DiskStore()
-    const view = new DiskStoreView(
-      store
-    , new StoreIndexKeyConverter()
-    , new StoreJSONValueConverter()
-    )
-    for (let i = 100; i--;) {
-      await view.set(i, i)
-    }
-
-    return {
-      async iterate() {
-        const promises: Array<Promise<unknown>> = []
-        for (let i = 100; i--;) {
-          promises.push(view.set(i, i))
-        }
-        await Promise.all(promises)
-      }
-    , async afterAll() {
-        await store.close()
-      }
-    }
-  })
-
-
-  benchmark.addCase('ExtraDiskCache (read)', async () => {
+  benchmark.addCase('DiskCache (read)', async () => {
     const filename = await createTempName()
     const cache = await DiskCache.create(filename)
     const view = new DiskCacheView(
       cache
-    , new CacheIndexKeyConverter()
-    , new CacheJSONValueConverter()
+    , new IndexKeyConverter()
+    , new JSONValueConverter()
     )
     for (let i = 100; i--;) {
       view.set(i, i)
@@ -222,15 +142,15 @@ go(async () => {
     }
   })
 
-  benchmark.addCase('ExtraDiskCacheWithCache (read)', async () => {
+  benchmark.addCase('DiskCacheWithCache (read)', async () => {
     const filename = await createTempName()
     const diskCache = await DiskCache.create(filename)
     const memoryCache = new TLRUMap<string, any>(100)
     const cache = new DiskCacheWithCache(diskCache, memoryCache)
     const view = new DiskCacheView(
       cache
-    , new CacheIndexKeyConverter()
-    , new CacheJSONValueConverter()
+    , new IndexKeyConverter()
+    , new JSONValueConverter()
     )
     for (let i = 100; i--;) {
       view.set(i, i)
@@ -245,31 +165,6 @@ go(async () => {
     , async afterAll() {
         cache.close()
         await remove(filename)
-      }
-    }
-  })
-
-  benchmark.addCase('ExtraDiskStore (read)', async () => {
-    const store = new DiskStore()
-    const view = new DiskStoreView(
-      store
-    , new StoreIndexKeyConverter()
-    , new StoreJSONValueConverter()
-    )
-    for (let i = 100; i--;) {
-      await view.set(i, i)
-    }
-
-    return {
-      async iterate() {
-        const promises: Array<Promise<unknown>> = []
-        for (let i = 100; i--;) {
-          promises.push(view.get(i))
-        }
-        await Promise.all(promises)
-      }
-    , async afterAll() {
-        await store.close()
       }
     }
   })
