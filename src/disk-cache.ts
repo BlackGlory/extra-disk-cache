@@ -8,6 +8,9 @@ import { map } from 'extra-promise'
 import { findUpPackageFilename } from 'extra-filesystem'
 import * as Iter from 'iterable-operator'
 import { withLazyStatic, lazyStatic } from 'extra-lazy'
+import { fileURLToPath } from 'url'
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
 export class DiskCache {
   private minimalExpirationTime?: number
