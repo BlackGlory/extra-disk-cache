@@ -211,7 +211,7 @@ export class DiskCache {
     lazyStatic(() => this._db.prepare(`
       DELETE FROM cache
        WHERE time_to_live IS NOT NULL
-         AND updated_at + time_to_live < $timestamp
+         AND updated_at + time_to_live <= $timestamp
     `), [this._db])
       .run({ timestamp })
   })
