@@ -60,7 +60,6 @@
   "dependencies": {
     "@blackglory/better-sqlite3-migrations": "^0.1.18",
     "@blackglory/prelude": "^0.3.4",
-    "@blackglory/types": "^1.4.0",
     "@mongodb-js/zstd": "^1.2.0",
     "better-sqlite3": "^9.4.1",
     "extra-filesystem": "^0.5.1",
