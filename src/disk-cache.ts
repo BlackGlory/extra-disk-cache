@@ -50,7 +50,7 @@ export class DiskCache {
   private scheduleCleaner(): void {
     if (this.cancelScheduledCleaner) {
       this.cancelScheduledCleaner()
-      delete this.cancelScheduledCleaner
+      this.cancelScheduledCleaner = undefined
     }
 
     if (isntUndefined(this.minimalExpirationTime)) {
@@ -69,7 +69,7 @@ export class DiskCache {
   close(): void {
     if (this.cancelScheduledCleaner) {
       this.cancelScheduledCleaner()
-      delete this.cancelScheduledCleaner
+      this.cancelScheduledCleaner = undefined
     }
 
     this._db.exec(`
@@ -194,7 +194,7 @@ export class DiskCache {
 
     if (this.cancelScheduledCleaner) {
       this.cancelScheduledCleaner()
-      delete this.cancelScheduledCleaner
+      this.cancelScheduledCleaner = undefined
     }
   })
 
