@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.12.5](https://github.com/BlackGlory/extra-disk-cache/compare/v0.12.4...v0.12.5) (2026-02-17)
+
+
+### Features
+
+* **key-converter:** improve robustness ([271880f](https://github.com/BlackGlory/extra-disk-cache/commit/271880f366be88d6b0c3a437636a7e23dc1c32ac))
+
 ### [0.12.4](https://github.com/BlackGlory/extra-disk-cache/compare/v0.12.3...v0.12.4) (2025-11-03)
 
 ### [0.12.3](https://github.com/BlackGlory/extra-disk-cache/compare/v0.12.2...v0.12.3) (2025-07-21)
