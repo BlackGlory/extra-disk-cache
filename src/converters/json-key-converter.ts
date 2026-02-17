@@ -6,7 +6,7 @@ export class JSONKeyConverter<T> implements IKeyConverter<T>, IKeyAsyncConverter
     return JSON.stringify(value)
   }
 
-  fromString(value: string): T {
+  fromString(value: string): T | undefined {
     return getResult(() => JSON.parse(value))
   }
 }
