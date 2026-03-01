@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.13.0](https://github.com/BlackGlory/extra-disk-cache/compare/v0.12.6...v0.13.0) (2026-03-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* Node.js v18 => Node.js v22
+
+* upgrade dependencies ([a20265c](https://github.com/BlackGlory/extra-disk-cache/commit/a20265c3f783ac8dd036aebd9bb53387b0fd490b))
+
 ### [0.12.6](https://github.com/BlackGlory/extra-disk-cache/compare/v0.12.5...v0.12.6) (2026-02-17)
 
 
