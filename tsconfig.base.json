@@ -9,21 +9,12 @@
   , "noUnusedLocals": false
   , "noUnusedParameters": false
   , "noImplicitOverride": true
-  , "baseUrl": "."
+  , "rootDir": "src"
+  , "types": ["*"]
   , "paths": {
-      "@src/*": ["src/*"]
-    , "@converters/*": ["src/converters/*"]
-    , "@test/*": ["__tests__/*"]
+      "@converters/*": ["./src/converters/*"]
+    , "@src/*": ["./src/*"]
+    , "@test/*": ["./__tests__/*"]
     }
-  , "plugins" : [
-      {
-        "transform": "typescript-transform-paths"
-      , "exclude" : ["**/node_modules/**"]
-      }
-    , {
-        "transform": "typescript-transform-paths", "afterDeclarations": true
-      , "exclude" : ["**/node_modules/**"]
-      }
-    ]
   }
 }

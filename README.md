@@ -4,8 +4,6 @@ A disk-based persistent cache.
 ## Install
 ```sh
 npm install --save extra-disk-cache
-# or
-yarn add extra-disk-cache
 ```
 
 ## Usage
